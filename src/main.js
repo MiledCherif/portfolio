@@ -101,7 +101,7 @@ const hero = document.getElementById('top');
 const contact = document.getElementById('contact');
 const captions = {
   cyber: 'L’hôpital sous son dôme : chaque fournisseur passe le contrôle avant d’entrer.',
-  saas: 'Une cible, et autour, les ventes de la semaine en ligne d’horizon.',
+  saas: 'Un quartier d’affaires : le siège, ses équipes, et les ventes de la semaine en direct.',
   web: 'Trois villes, une rivière, un pont : le camion fait sa tournée.',
   games: 'Le château, la cascade et le cristal d’écho.',
 };
@@ -131,7 +131,7 @@ zones.forEach((z, i) => {
   const [main, ...rest] = z.projects.map((id) => ({ id, ...projects[id] }));
   const feature = main.images.length
     ? `<button class="feature rise" style="--delay:180ms" data-project="${main.id}">
-        <figure><img src="${main.images[0]}" alt="Capture de ${main.name}" loading="lazy" width="1440" height="900"></figure>
+        <figure><img src="${main.images[0]}" alt="Capture de ${main.name}" loading="lazy" width="2160" height="1350"></figure>
         <span class="name"><b>${main.name}</b><span>Ouvrir le projet →</span></span>
         <p>${main.summary}</p></button>`
     : `<div class="later rise" style="--delay:180ms"><div><b>${main.name}</b><p>${main.summary} Captures et description à venir.</p></div></div>`;
@@ -227,9 +227,9 @@ function openProject(id, x = innerWidth / 2, y = innerHeight / 2) {
   lastFocus = document.activeElement;
   overlay.style.cssText = `--x:${x}px;--y:${y}px;--p-ground:${z.ground};--p-ink:${z.ink};--p-accent:${z.accent};--p-on:${z.onAccent}`;
   inner.innerHTML = `
-    <h2 class="p-title" id="project-title">${p.name}</h2>
-    <div class="p-sub"><p>${p.summary}</p><span>${z.title}${p.year ? ` · ${p.year}` : ''}</span></div>
-    ${p.images.length ? `<div class="p-gallery"><div class="p-main"><img src="${p.images[0]}" alt="Capture de ${p.name}" width="1440" height="900"></div>
+    <div class="p-head-wrap"><h2 class="p-title" id="project-title">${p.name}</h2>
+    <div class="p-sub"><p>${p.summary}</p><span>${z.title}${p.year ? ` · ${p.year}` : ''}</span></div></div>
+    ${p.images.length ? `<div class="p-gallery"><div class="p-main"><img src="${p.images[0]}" alt="Capture de ${p.name}" width="2160" height="1350"></div>
       <div class="p-thumbs">${p.images.map((src, i) => `<button class="${i ? '' : 'on'}" data-src="${src}" style="background-image:url('${src}')" aria-label="Capture ${i + 1} sur ${p.images.length}"></button>`).join('')}</div></div>`
       : `<p class="p-empty">${p.body[0]}</p>`}
     ${p.pending ? '' : `<div class="p-cols">

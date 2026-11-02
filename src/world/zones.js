@@ -149,72 +149,210 @@ export function buildCyber(tex) {
 }
 
 /* ------------------------------------------------------------------ */
-/* SaaS : TrackTarget, une cible et une ligne d'horizon de ventes        */
+/* SaaS : TrackTarget, un quartier d'affaires B2B autour du siège       */
 /* ------------------------------------------------------------------ */
+const winGeo = new THREE.PlaneGeometry(1, 1);
+
+/** Tour de bureaux : verre sombre, dalles d'étage claires, fenêtres allumées au hasard. */
+function officeTower({ w, d, h, floor = 0.42, glass = '#1d2633', slab = '#c9ced6', lit = '#ffe2b0', litRatio = 0.45, fins = 0, accent = null, seed = 1 }) {
+  const t = new THREE.Group();
+  const rnd = mulberry(seed);
+  const body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(glass, { roughness: 0.12, metalness: 0.75, envMapIntensity: 1.4 }));
+  body.position.y = h / 2; t.add(body);
+  const floors = Math.floor(h / floor);
+  const slabMat = mat(slab, { roughness: 0.55 });
+  const slabGeo = new THREE.BoxGeometry(w + 0.06, 0.05, d + 0.06);
+  for (let f = 1; f < floors; f++) {
+    const sl = new THREE.Mesh(slabGeo, slabMat); sl.position.y = f * floor; t.add(sl);
+  }
+  // Fenêtres : instances sur les quatre façades
+  const cells = [];
+  [[w, d, 0], [d, w, Math.PI / 2], [w, d, Math.PI], [d, w, -Math.PI / 2]].forEach(([fw, fd, ry]) => {
+    const cols = Math.max(2, Math.round(fw / 0.42));
+    for (let f = 0; f < floors - 1; f++) for (let c = 0; c < cols; c++) {
+      const x = -fw / 2 + (c + 0.5) * fw / cols;
+      cells.push({ x, y: f * floor + floor / 2 + 0.02, fd, ry, cw: fw / cols * 0.78, on: rnd() < litRatio });
+    }
+  });
+  const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), pos = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0);
+  for (const on of [true, false]) {
+    const list = cells.filter((c) => c.on === on);
+    const im = new THREE.InstancedMesh(winGeo, on ? glow(lit, 0.55) : mat('#141c27', { roughness: 0.15, metalness: 0.5 }), list.length);
+    list.forEach((c, i) => {
+      q.setFromAxisAngle(up, c.ry);
+      pos.set(c.x, c.y, c.fd / 2 + 0.012).applyQuaternion(q);
+      sc.set(c.cw, floor * 0.62, 1);
+      im.setMatrixAt(i, m4.compose(pos, q, sc));
+    });
+    t.add(im);
+  }
+  // Ailettes verticales (façade avant/arrière)
+  if (fins) {
+    const finMat = mat(slab, { roughness: 0.5 });
+    for (let i = 0; i <= fins; i++) for (const z of [d / 2 + 0.06, -d / 2 - 0.06]) {
+      const fin = new THREE.Mesh(new THREE.BoxGeometry(0.05, h, 0.14), finMat);
+      fin.position.set(-w / 2 + (i / fins) * w, h / 2, z); t.add(fin);
+    }
+  }
+  // Toiture : acrotère, équipements techniques
+  const roof = new THREE.Mesh(rbox(w + 0.12, 0.22, d + 0.12, 0.04, 1), mat('#2a313c', { roughness: 0.6 }));
+  roof.position.y = h + 0.1; t.add(roof);
+  const hv = new THREE.Mesh(rbox(w * 0.4, 0.35, d * 0.35, 0.04, 1), mat('#8a93a0'));
+  hv.position.set(w * 0.15, h + 0.38, -d * 0.12); t.add(hv);
+  if (accent) {
+    const band = new THREE.Mesh(new THREE.BoxGeometry(w + 0.1, 0.16, d + 0.1), glow(accent, 1.4));
+    band.position.y = h - 0.32; t.add(band);
+  }
+  shadow(t);
+  t.children.forEach((o) => { if (o.isInstancedMesh) o.castShadow = false; });
+  return t;
+}
+
 export function buildSaas(tex) {
   const g = new THREE.Group();
   const ticks = [], hits = [];
-  g.add(island({ r: 10, top: '#222833', soil: '#3a3430', rock: '#3d3f47', rockDark: '#15161b', seed: 5 }));
+  const top = 1.16;
+  g.add(island({ r: 10, top: '#2b313b', soil: '#3a3430', rock: '#3d3f47', rockDark: '#15161b', seed: 5 }));
 
-  // Anneaux de la cible au sol
-  const ringCols = ['#f0bc74', '#1f2937', '#f0bc74', '#1f2937', '#f0bc74'];
-  [[0, 1.2], [1.2, 2.4], [2.4, 3.6], [3.6, 4.8], [4.8, 5.15]].forEach(([a, b], i) => {
-    const ring = new THREE.Mesh(new THREE.RingGeometry(a, b, 96), mat(ringCols[i], { roughness: 0.6 }));
-    ring.rotation.x = -Math.PI / 2; ring.position.y = 1.16 + i * 0.002; ring.receiveShadow = true; g.add(ring);
+  // Parvis en dalles de pierre claire
+  const plaza = new THREE.Mesh(rbox(13, 0.12, 9.5, 0.05, 1), mat('#d9d4cb', { roughness: 0.85 }));
+  plaza.position.set(0, top, 0.2); plaza.receiveShadow = true; g.add(plaza);
+  const jointMat = mat('#bdb7ac', { roughness: 0.9 });
+  for (let i = -6; i <= 6; i++) {
+    const j = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.02, 9.5), jointMat); j.position.set(i, top + 0.065, 0.2); g.add(j);
+  }
+  for (let k = -4; k <= 4; k++) {
+    const j = new THREE.Mesh(new THREE.BoxGeometry(13, 0.02, 0.03), jointMat); j.position.set(0, top + 0.065, 0.2 + k); g.add(j);
+  }
+  const ground = top + 0.06;
+
+  // Boulevard circulaire et voitures
+  const road = new THREE.Mesh(new THREE.RingGeometry(7.75, 8.85, 96), mat('#1b1f26', { roughness: 0.7 }));
+  road.rotation.x = -Math.PI / 2; road.position.y = top + 0.01; road.receiveShadow = true; g.add(road);
+  const dash = new THREE.Mesh(new THREE.RingGeometry(8.28, 8.32, 96), mat('#e9e4da'));
+  dash.rotation.x = -Math.PI / 2; dash.position.y = top + 0.015; g.add(dash);
+  const cars = ['#f5a524', '#e7ebf1', '#0f172a', '#e7ebf1', '#64748b', '#f5a524'].map((c, i) => {
+    const car = new THREE.Group();
+    const cb = new THREE.Mesh(rbox(0.36, 0.22, 0.75, 0.07, 2), mat(c, { roughness: 0.3, metalness: 0.4 }));
+    cb.position.y = 0.17; car.add(cb);
+    const cab = new THREE.Mesh(rbox(0.3, 0.16, 0.4, 0.06, 2), mat('#1a2230', { roughness: 0.1, metalness: 0.7 }));
+    cab.position.set(0, 0.34, -0.04); car.add(cab);
+    shadow(car); g.add(car);
+    return { car, lane: i % 2 ? 8.05 : 8.55, dir: i % 2 ? 1 : -1, off: i * 1.07, speed: 0.11 + (i % 3) * 0.02 };
   });
 
-  // Ligne d'horizon : chaque tour est une semaine de ventes (données de démonstration)
-  const towers = [];
-  const n = 22;
-  for (let i = 0; i < n; i++) {
-    const a = (i / n) * TAU * 0.78 + 2.6;
-    const v = 0.45 + 0.35 * Math.sin(i * 0.55) + 0.25 * Math.sin(i * 1.7 + 1) + i * 0.02;
-    const h = 1.2 + v * 4.2;
-    const tower = new THREE.Group();
-    const body = new THREE.Mesh(rbox(0.9, 1, 0.9, 0.08), mat('#e7ebf1', { roughness: 0.45, metalness: 0.15 }));
-    const cap = new THREE.Mesh(rbox(0.92, 0.14, 0.92, 0.05), glow('#f5a524', 1.8));
-    tower.add(body, cap); shadow(tower);
-    const r = 7.1 + (i % 2) * 0.9;
-    tower.position.set(Math.cos(a) * r, 1.1, Math.sin(a) * r);
-    g.add(tower);
-    towers.push({ body, cap, h, phase: i * 0.3 });
-  }
+  // Le siège TrackTarget : deux volumes en retrait, couronne lumineuse
+  const hq = officeTower({ w: 3, d: 2.6, h: 9.2, glass: '#18212d', litRatio: 0.4, accent: '#f5a524', seed: 11 });
+  hq.position.set(0.2, ground, -3.2); g.add(hq);
+  const hqTop = officeTower({ w: 2, d: 1.8, h: 2.6, glass: '#18212d', litRatio: 0.4, seed: 12 });
+  hqTop.position.set(0.2, ground + 9.42, -3.2); g.add(hqTop);
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.07, 1.6, 8), mat('#9aa3b0', { metalness: 0.6, roughness: 0.3 }));
+  mast.position.set(0.2, ground + 12.9, -3.2); g.add(mast);
+  const blink = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 8), glow('#ff5a4f', 3));
+  blink.position.set(0.2, ground + 13.75, -3.2); g.add(blink);
 
-  // L'emblème : une mire qui vise
-  const reticle = new THREE.Group();
-  const ringMat = glow('#f5a524', 2.2);
-  reticle.add(new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.09, 12, 80), ringMat));
-  reticle.add(new THREE.Mesh(new THREE.TorusGeometry(0.75, 0.05, 12, 64), ringMat));
+  // Logo TrackTarget sur la façade du siège
+  const logo = new THREE.Group();
+  const logoMat = glow('#f5a524', 2.4);
+  logo.add(new THREE.Mesh(new THREE.TorusGeometry(0.62, 0.07, 10, 64), logoMat));
+  const dot = new THREE.Mesh(new THREE.CircleGeometry(0.24, 32), logoMat); dot.position.z = 0.02; logo.add(dot);
   for (let i = 0; i < 4; i++) {
-    const tick = new THREE.Mesh(rbox(0.12, 0.9, 0.12, 0.04), ringMat);
-    tick.position.set(Math.cos(i * Math.PI / 2) * 1.9, Math.sin(i * Math.PI / 2) * 1.9, 0);
-    tick.rotation.z = i * Math.PI / 2; reticle.add(tick);
+    const tk = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.42, 0.06), logoMat);
+    const a = i * Math.PI / 2; tk.position.set(Math.cos(a) * 0.86, Math.sin(a) * 0.86, 0); tk.rotation.z = a + Math.PI / 2; logo.add(tk);
   }
-  reticle.position.y = 6.2; g.add(reticle);
-  const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.8, 3.4, 32), mat('#2b3240', { roughness: 0.35, metalness: 0.4 }));
-  pillar.position.y = 2.85; shadow(pillar); g.add(pillar);
-  const beamUp = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 1.4, 8), glow('#f5a524', 2));
-  beamUp.position.y = 5.2; g.add(beamUp);
+  const plate = new THREE.Mesh(rbox(2.2, 2.2, 0.1, 0.08, 2), mat('#10161f', { roughness: 0.3, metalness: 0.5 }));
+  plate.position.z = -0.07; logo.add(plate);
+  logo.position.set(0.2, ground + 7.6, -3.2 + 1.36); g.add(logo);
 
-  // Trois écrans TrackTarget
-  const screens = [[0, -8.2, 7.5, 2.2, 0.9], [1, -3, 9.6, -5.4, 0.25], [2, 5.6, 8.6, -5.8, -0.35]].map(([k, x, y, z, ry]) => {
+  // Tours voisines
+  const towers = [
+    [{ w: 2.2, d: 2, h: 6.6, glass: '#e9edf2', slab: '#ffffff', lit: '#ffefd2', litRatio: 0.35, fins: 7, seed: 21 }, -3.7, -3.4],
+    [{ w: 1.9, d: 2.2, h: 7.8, glass: '#1e2b3b', litRatio: 0.35, seed: 22 }, 4, -3.8],
+    [{ w: 1.6, d: 1.6, h: 4.6, glass: '#2a3644', litRatio: 0.4, accent: '#f0bc74', seed: 23 }, 5.3, -0.4],
+    [{ w: 1.8, d: 1.7, h: 3.8, glass: '#e9edf2', slab: '#ffffff', litRatio: 0.3, fins: 5, seed: 24 }, -5.4, -0.6],
+  ];
+  towers.forEach(([o, x, z]) => { const t = officeTower(o); t.position.set(x, ground, z); g.add(t); });
+
+  // Passerelle vitrée entre le siège et la tour voisine
+  const bridge = new THREE.Mesh(rbox(2.4, 0.5, 0.7, 0.06, 2), mat('#9fb4c8', { roughness: 0.08, metalness: 0.6, transparent: true, opacity: 0.85 }));
+  bridge.position.set(2.5, ground + 5.2, -3.3); shadow(bridge); g.add(bridge);
+  const bridgeLit = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.06, 0.72), glow('#ffe2b0', 1.2));
+  bridgeLit.position.set(2.5, ground + 4.97, -3.3); g.add(bridgeLit);
+
+  // Campus bas avec toit végétalisé et auvent d'entrée
+  const campus = new THREE.Group();
+  const cBody = new THREE.Mesh(rbox(4.6, 1.3, 1.6, 0.06, 2), mat('#eceae5', { roughness: 0.6 }));
+  cBody.position.y = 0.65; campus.add(cBody);
+  const band = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.5, 1.62), mat('#1d2633', { roughness: 0.1, metalness: 0.7 }));
+  band.position.y = 0.62; campus.add(band);
+  const green = new THREE.Mesh(rbox(4.4, 0.12, 1.4, 0.05, 1), mat('#5f8a4e', { roughness: 0.95 }));
+  green.position.y = 1.34; campus.add(green);
+  for (let i = 0; i < 9; i++) {
+    const glowWin = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.3), glow('#ffe2b0', 1.1));
+    glowWin.position.set(-2 + i * 0.5, 0.62, 0.815); campus.add(glowWin);
+  }
+  shadow(campus); campus.position.set(-3.4, ground, 2.6); campus.rotation.y = 0.18; g.add(campus);
+
+  // Allées plantées, bancs, lampadaires
+  const planterMat = mat('#4a4f58', { roughness: 0.7 });
+  [[-1.4, 1.2], [1.8, 1.2], [-1.4, 3.6], [1.8, 3.6], [4.4, 2.6]].forEach(([x, z], i) => {
+    const pl = new THREE.Mesh(rbox(1.1, 0.35, 1.1, 0.05, 1), planterMat);
+    pl.position.set(x, ground + 0.17, z); shadow(pl); g.add(pl);
+    const tr = roundTree(0.55 + (i % 2) * 0.1, i % 2 ? '#5d8f48' : '#6c9b52');
+    tr.position.set(x, ground + 0.35, z); g.add(tr);
+  });
+  const lampMat = mat('#2a313c', { metalness: 0.5, roughness: 0.4 });
+  [[0.2, 0], [0.2, 2.4], [0.2, 4.6], [-6, 3.2], [6, 3]].forEach(([x, z]) => {
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.04, 1.3, 6), lampMat);
+    pole.position.set(x, ground + 0.65, z); pole.castShadow = true; g.add(pole);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 8), glow('#ffe2b0', 2.2));
+    head.position.set(x, ground + 1.32, z); g.add(head);
+  });
+  // Bassin miroir devant le siège
+  const pool = new THREE.Mesh(rbox(3.6, 0.06, 0.9, 0.04, 1), mat('#1c3b55', { roughness: 0.05, metalness: 0.8 }));
+  pool.position.set(0.2, ground + 0.02, -0.8); g.add(pool);
+
+  // Tableau de bord holographique : les ventes de la semaine en barres
+  const holo = new THREE.Group();
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 1.35, 0.14, 48), mat('#1d2633', { metalness: 0.6, roughness: 0.3 }));
+  holo.add(base);
+  const ringH = new THREE.Mesh(new THREE.TorusGeometry(1.2, 0.025, 8, 64), glow('#f5a524', 2));
+  ringH.rotation.x = Math.PI / 2; ringH.position.y = 0.08; holo.add(ringH);
+  const bars = [0.5, 0.75, 0.62, 0.95, 0.85, 1.2, 1.45].map((v, i) => {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1, 0.2), new THREE.MeshStandardMaterial({ color: '#f5a524', emissive: '#f5a524', emissiveIntensity: 1.3, transparent: true, opacity: 0.85 }));
+    b.position.set(-0.9 + i * 0.3, 0, 0); holo.add(b);
+    return { b, v, ph: i * 0.6 };
+  });
+  holo.position.set(4.1, ground + 0.07, 4.6); g.add(holo);
+
+  // Écrans TrackTarget
+  const screens = [[0, -8.4, 7.4, 2.2, 0.9], [1, -3.6, 11.2, -6.6, 0.25], [2, 6.4, 10.2, -6.2, -0.4]].map(([k, x, y, z, ry]) => {
     const s = screen(tex('tracktarget', k), k === 0 ? 5.6 : 4.4, '#1f2937');
     s.position.set(x, y, z); s.rotation.y = ry; g.add(s);
     s.userData.hits.forEach((m) => { m.userData.project = 'tracktarget'; hits.push(m); });
     return s;
   });
 
+  g.add(motes(60, new THREE.Vector3(16, 12, 16), '#ffd59a', 0.12, 0.25, 5));
+  ticks.push(g.children[g.children.length - 1].userData.tick);
+
   ticks.push((t) => {
-    reticle.rotation.y = Math.sin(t * 0.5) * 0.6;
-    reticle.rotation.z = t * 0.25;
-    towers.forEach((tw) => {
-      const h = tw.h * (0.92 + 0.08 * Math.sin(t * 0.8 + tw.phase));
-      tw.body.scale.y = h; tw.body.position.y = h / 2; tw.cap.position.y = h + 0.05;
+    blink.material.emissiveIntensity = Math.sin(t * 3) > 0.6 ? 3 : 0.2;
+    logo.rotation.z = Math.sin(t * 0.4) * 0.05;
+    cars.forEach((c) => {
+      const a = c.off + t * c.speed * c.dir;
+      c.car.position.set(Math.cos(a) * c.lane, top, Math.sin(a) * c.lane);
+      c.car.rotation.y = -a + (c.dir > 0 ? 0 : Math.PI);
     });
+    bars.forEach(({ b, v, ph }) => {
+      const h = v * (0.85 + 0.15 * Math.sin(t * 1.2 + ph));
+      b.scale.y = h; b.position.y = 0.1 + h / 2;
+    });
+    holo.rotation.y = t * 0.3;
     screens.forEach((s, i) => { s.position.y += Math.sin(t * 0.8 + i * 2) * 0.004; });
   });
 
-  return { group: g, ticks, hits, focus: new THREE.Vector3(0, 4, 0) };
+  return { group: g, ticks, hits, focus: new THREE.Vector3(0, 4.5, 0) };
 }
 
 /* ------------------------------------------------------------------ */

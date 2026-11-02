@@ -62,7 +62,7 @@ export const projects = {
     ],
     stack: ['Python', 'Django', 'Matplotlib', 'Bootstrap 5', 'Render'],
     highlights: ['Graphiques de ventes générés côté serveur', 'Réseau d’équipe et messagerie interne', 'Carte des clients par région'],
-    images: [c('tracktarget', '01-dashboard'), c('tracktarget', '02-transactions'), c('tracktarget', '05-campagnes'), c('tracktarget', '03-clients'), c('tracktarget', '07-carte'), c('tracktarget', '08-messages')],
+    images: [c('tracktarget', '01-tableau-de-bord'), c('tracktarget', '02-pipeline'), c('tracktarget', '03-transactions'), c('tracktarget', '04-campagnes')],
   },
   yourmove: {
     name: 'YourMove',

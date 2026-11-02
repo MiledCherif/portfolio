@@ -96,6 +96,10 @@ main { position: relative; z-index: 10; }
 .contact p { margin: 28px 0 36px; font-size: clamp(19px, 1.5vw, 22px); font-weight: 500; max-width: 34ch; }
 .contact .signature { font-weight: 800; font-size: clamp(64px, 14.2vw, 240px); line-height: .8; letter-spacing: -.055em; white-space: nowrap; margin: 80px 0 0 -.04em; }
 
+.contact-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 28px; }
+.link { font-weight: 700; font-size: 17px; text-underline-offset: 6px; text-decoration-thickness: 2px; }
+.link:hover { text-decoration-thickness: 3px; }
+
 /* Entrées */
 .rise { opacity: 0; transform: translateY(26px); transition: opacity .8s var(--ease), transform .8s var(--ease); transition-delay: var(--delay, 0ms); }
 .in .rise, .rise.in { opacity: 1; transform: none; }
@@ -112,17 +116,18 @@ main { position: relative; z-index: 10; }
 #project.open .project-inner > :nth-child(2) { transition-delay: .43s; }
 #project.open .project-inner > :nth-child(3) { transition-delay: .51s; }
 #project.open .project-inner > :nth-child(4) { transition-delay: .59s; }
-.p-title { font-weight: 800; font-size: clamp(64px, 11vw, 200px); line-height: .84; letter-spacing: -.055em; }
+.p-head-wrap { max-width: 980px; margin: 0 auto; }
+.p-title { font-weight: 800; font-size: clamp(56px, 8.4vw, 150px); line-height: .84; letter-spacing: -.055em; }
 .p-sub { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 32px; align-items: end; margin-top: 28px; }
 .p-sub p { font-size: clamp(21px, 1.9vw, 30px); font-weight: 500; line-height: 1.3; max-width: 32ch; }
 .p-sub span { font-weight: 500; opacity: .75; }
-.p-gallery { margin-top: 64px; }
-.p-main { background: color-mix(in srgb, var(--p-ink) 6%, var(--p-ground)); }
+.p-gallery { margin: 64px auto 0; max-width: 980px; }
+.p-main { border-radius: 10px; overflow: hidden; box-shadow: 0 30px 60px -30px rgb(0 0 0 / .45); background: color-mix(in srgb, var(--p-ink) 6%, var(--p-ground)); }
 .p-main img { display: block; width: 100%; height: auto; }
 .p-thumbs { display: flex; gap: 10px; margin-top: 10px; overflow-x: auto; padding-bottom: 4px; }
 .p-thumbs button { flex: 0 0 168px; aspect-ratio: 16/10; background: center/cover no-repeat; opacity: .5; transition: opacity .3s; }
 .p-thumbs button.on, .p-thumbs button:hover { opacity: 1; }
-.p-cols { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 64px; margin-top: 120px; }
+.p-cols { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 64px; margin: 120px auto 0; max-width: 980px; }
 .p-cols p { margin-bottom: 18px; max-width: 60ch; font-size: 18px; }
 .p-cols h3 { font-weight: 800; font-size: 26px; letter-spacing: -.03em; margin: 0 0 12px; }
 .p-cols h3 + p { margin-bottom: 40px; }
