@@ -58,10 +58,29 @@ const gl = renderer.getContext(), dbg = gl.getExtension('WEBGL_debug_renderer_in
 const software = /swiftshader|llvmpipe|software/i.test(dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : '');
 const useComposer = !q.has('raw');
 if (useComposer) composer.addPass(bloom);
+// Effet de voyage : flou radial, aberration chromatique et vignette, selon la vitesse de la caméra
+const warp = new ShaderPass({
+  uniforms: { tDiffuse: { value: null }, uAmt: { value: 0 } },
+  vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }',
+  fragmentShader: `uniform sampler2D tDiffuse; uniform float uAmt; varying vec2 vUv;
+    void main(){
+      vec2 d = vUv - 0.5; float r = length(d);
+      vec3 acc = vec3(0.);
+      for (int i = 0; i < 12; i++) {
+        float s = 1. - uAmt * 0.09 * r * float(i) / 11.;
+        vec2 uv = 0.5 + d * s;
+        float ca = uAmt * 0.012 * r;
+        acc += vec3(texture2D(tDiffuse, 0.5 + d * (s + ca)).r, texture2D(tDiffuse, uv).g, texture2D(tDiffuse, 0.5 + d * (s - ca)).b);
+      }
+      vec3 col = acc / 12.;
+      col *= 1. - smoothstep(0.35, 0.95, r) * (uAmt * 0.6);
+      gl_FragColor = vec4(col, 1.);
+    }`,
+});
+if (useComposer) composer.addPass(warp);
 composer.addPass(new OutputPass());
 
-const manager = new THREE.LoadingManager(() => document.body.classList.add('ready'));
-setTimeout(() => document.body.classList.add('ready'), 6000);
+const manager = new THREE.LoadingManager();
 const texLoader = new THREE.TextureLoader(manager);
 const tex = (id, i) => {
   const t = texLoader.load(projects[id].images[i]);
@@ -94,6 +113,40 @@ for (const [, [w, c]] of Object.entries(placed)) {
   }
   const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   scene.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: '#ffffff', size: 0.7, transparent: true, opacity: 0.7, fog: false, depthWrite: false })));
+}
+
+// Nuages : une mer sous les îles, et une couche que la caméra traverse pendant l'intro
+const cloudTex = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const x = c.getContext('2d');
+  for (let i = 0; i < 7; i++) {
+    const cx = 64 + (Math.random() - 0.5) * 50, cy = 64 + (Math.random() - 0.5) * 26, r = 26 + Math.random() * 22;
+    const g = x.createRadialGradient(cx, cy, 0, cx, cy, r);
+    g.addColorStop(0, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+})();
+const cloudSea = new THREE.Group(), introClouds = new THREE.Group();
+{
+  for (let i = 0; i < 120; i++) {
+    const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: cloudTex, color: '#aeb8cc', transparent: true, opacity: 0.07 + Math.random() * 0.09, depthWrite: false }));
+    const sc = 30 + Math.random() * 40;
+    m.scale.set(sc, sc * 0.55, 1);
+    m.position.set((Math.random() - 0.5) * 300, -52 + Math.random() * 14, -150 + Math.random() * 260);
+    m.userData.v = 0.4 + Math.random() * 0.8;
+    cloudSea.add(m);
+  }
+  for (let i = 0; i < 70; i++) {
+    const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: cloudTex, color: '#ffffff', transparent: true, opacity: 0.85, depthWrite: false, fog: false }));
+    const k = 0.3 + Math.random() * 0.4;
+    const sc = 30 + Math.random() * 50;
+    m.scale.set(sc, sc * 0.6, 1);
+    m.position.set(-60 + 60 * k + (Math.random() - 0.5) * 90, 230 - 150 * k + (Math.random() - 0.5) * 30, 320 - 190 * k + (Math.random() - 0.5) * 60);
+    m.userData.o = m.material.opacity;
+    introClouds.add(m);
+  }
+  scene.add(cloudSea, introClouds);
 }
 
 /* ---------- Chapitres HTML ---------- */
@@ -298,6 +351,18 @@ const clock = new THREE.Clock();
 const root = document.documentElement;
 let activeShown = -1;
 
+// Intro : la caméra plonge de l'espace, traverse les nuages et se pose sur les îles
+const introCurve = new THREE.CatmullRomCurve3([new THREE.Vector3(-70, 250, 330), new THREE.Vector3(30, 150, 230), new THREE.Vector3()], false, 'centripetal');
+let intro = (reduceMotion || scrollY > 40) ? 1 : 0, introStarted = intro === 1;
+const introLength = 4.6;
+const outQuint = (u) => 1 - Math.pow(1 - u, 5);
+const startIntro = () => { if (!introStarted) { introStarted = true; } };
+if (intro === 1) document.body.classList.add('landed'), introClouds.visible = false;
+manager.onLoad = () => { document.body.classList.add('ready'); setTimeout(startIntro, 350); };
+setTimeout(() => { document.body.classList.add('ready'); setTimeout(startIntro, 350); }, 6000);
+const prevCam = new THREE.Vector3();
+let speedAmt = 0;
+
 function frame() {
   const dt = Math.min(clock.getDelta(), 0.05), t = clock.elapsedTime;
   smooth += (target - smooth) * (reduceMotion ? 1 : 1 - Math.pow(0.004, dt));
@@ -307,12 +372,36 @@ function frame() {
 
   camera.position.copy(posCurve.getPoint(k));
   look.copy(tgtCurve.getPoint(k));
+  let bank = 0;
+  if (intro < 1) {
+    if (introStarted) intro = Math.min(1, intro + dt / introLength);
+    const e = outQuint(intro);
+    introCurve.points[2].copy(camera.position);
+    camera.position.copy(introCurve.getPoint(e));
+    look.lerpVectors(new THREE.Vector3(0, 0, -20), look, e);
+    bank = (1 - e) * 0.5;
+    if (intro > 0.55 && !document.body.classList.contains('landed')) document.body.classList.add('landed');
+    introClouds.children.forEach((m) => { m.material.opacity = m.userData.o * (1 - THREE.MathUtils.smoothstep(intro, 0.6, 0.95)); });
+    if (intro === 1) introClouds.visible = false;
+  }
   if (!reduceMotion) {
     parallax.lerp(pointerOnCanvas ? pointer : parallax.set(0, 0), 0.04);
     camera.position.x += parallax.x * 1.4;
     camera.position.y += parallax.y * 0.9;
   }
   camera.lookAt(look);
+  if (bank) camera.rotateZ(bank);
+
+  // Vitesse de la caméra → intensité de l'effet de voyage
+  const speed = prevCam.distanceTo(camera.position) / Math.max(dt, 1e-3);
+  prevCam.copy(camera.position);
+  const want = reduceMotion ? 0 : THREE.MathUtils.clamp((speed - 6) / 45, 0, 1);
+  speedAmt += (want - speedAmt) * (1 - Math.pow(0.02, dt));
+  warp.uniforms.uAmt.value = speedAmt;
+  warp.enabled = speedAmt > 0.004;
+  const fov = 40 + speedAmt * 9;
+  if (Math.abs(camera.fov - fov) > 0.01) { camera.fov = fov; camera.updateProjectionMatrix(); }
+  cloudSea.children.forEach((m) => { m.position.x += m.userData.v * dt; if (m.position.x > 150) m.position.x = -150; });
 
   const a = stationColors[i], b = stationColors[i + 1];
   // Le fond change d'un coup au milieu de la transition : pas de fondu entre deux champs de couleur
