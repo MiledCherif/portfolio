@@ -365,7 +365,7 @@ export function buildWeb(tex) {
   const top = 1.16;
 
   // La rivière traverse l'île
-  const riverPath = new THREE.CatmullRomCurve3([[-13, 0, 3], [-6, 0, 1.2], [0, 0, 2.2], [6, 0, 0.4], [13, 0, 1.6]].map((p) => new THREE.Vector3(...p)));
+  const riverPath = new THREE.CatmullRomCurve3([[-10.2, 0, 2.7], [-6, 0, 1.2], [0, 0, 2.2], [6, 0, 0.4], [10.1, 0, 1.3]].map((p) => new THREE.Vector3(...p)));
   const ribbon = (curve, width, y, samples = 120) => {
     const pos = [], idx = [];
     for (let i = 0; i <= samples; i++) {
@@ -379,14 +379,14 @@ export function buildWeb(tex) {
     geo.setIndex(idx); geo.computeVertexNormals();
     return geo;
   };
-  const water = new THREE.Mesh(ribbon(riverPath, 2.6, top + 0.01), new THREE.MeshStandardMaterial({ color: '#3f86d6', roughness: 0.12, metalness: 0.2, emissive: '#123a6a', emissiveIntensity: 0.3, side: THREE.DoubleSide }));
+  const water = new THREE.Mesh(ribbon(riverPath, 2.6, top + 0.09), new THREE.MeshStandardMaterial({ color: '#3f86d6', roughness: 0.12, metalness: 0.2, emissive: '#123a6a', emissiveIntensity: 0.3, side: THREE.DoubleSide }));
   water.receiveShadow = true;
-  const banks = new THREE.Mesh(ribbon(riverPath, 3.4, top + 0.005), mat('#c9b48a', { side: THREE.DoubleSide }));
+  const banks = new THREE.Mesh(ribbon(riverPath, 3.4, top + 0.05), mat('#c9b48a', { side: THREE.DoubleSide }));
   g.add(banks, water);
 
   // Route en boucle qui passe par le pont
   const road = new THREE.CatmullRomCurve3([[-6.5, 0, -4], [0, 0, -6.5], [6.5, 0, -4.5], [7.5, 0, 0.6], [5, 0, 5.5], [-1, 0, 7.4], [-6.5, 0, 5.2], [-8, 0, 0.8]].map((p) => new THREE.Vector3(...p)), true);
-  g.add(Object.assign(new THREE.Mesh(ribbon(road, 1.05, top + 0.03, 240), mat('#45484f', { side: THREE.DoubleSide })), { receiveShadow: true }));
+  g.add(Object.assign(new THREE.Mesh(ribbon(road, 1.05, top + 0.13, 240), mat('#45484f', { side: THREE.DoubleSide })), { receiveShadow: true }));
   // Pont là où la route croise la rivière (côté est)
   const bridge = new THREE.Group();
   const deck = new THREE.Mesh(rbox(1.5, 0.2, 4.2, 0.05), mat('#d8d2c6'));
@@ -407,7 +407,7 @@ export function buildWeb(tex) {
     const side = i % 2 ? 1 : -1;
     const off = new THREE.Vector3(-tg.z, 0, tg.x).normalize().multiplyScalar(1.7 * side);
     const pos = p.clone().add(off);
-    if (Math.abs(pos.z - riverPath.getPoint((pos.x + 13) / 26).z) < 2.2 || pos.length() > 9.8) continue;
+    if (Math.abs(pos.z - riverPath.getPoint(THREE.MathUtils.clamp((pos.x + 10.2) / 20.3, 0, 1)).z) < 2.2 || pos.length() > 9.8) continue;
     const hs = house({ w: 1.3 + rnd() * 0.6, d: 1.2, h: 1 + rnd() * 0.8, wall: walls[i % 5], roof: roofs[i % 4] });
     hs.position.set(pos.x, top, pos.z);
     hs.lookAt(p.x, top, p.z);
@@ -416,7 +416,7 @@ export function buildWeb(tex) {
   for (let i = 0; i < 26; i++) {
     const a = rnd() * TAU, r = 2 + rnd() * 8.5;
     const x = Math.cos(a) * r, z = Math.sin(a) * r;
-    if (Math.abs(z - riverPath.getPoint((x + 13) / 26).z) < 2.2) continue;
+    if (Math.abs(z - riverPath.getPoint(THREE.MathUtils.clamp((x + 10.2) / 20.3, 0, 1)).z) < 2.2) continue;
     const tr = i % 3 ? roundTree(0.8 + rnd() * 0.5, ['#5f9448', '#4c7f3b', '#77a35a'][i % 3]) : pine(0.7 + rnd() * 0.4, '#3e7550');
     tr.position.set(x, top, z); g.add(tr);
   }
@@ -460,7 +460,7 @@ export function buildWeb(tex) {
     const u = (t * 0.035) % 1;
     const p = road.getPointAt(u);
     const nearBridge = Math.max(0, 1 - p.distanceTo(new THREE.Vector3(7.35, 0, 0.6)) / 2.4);
-    truck.position.set(p.x, top + 0.03 + nearBridge * 0.45, p.z);
+    truck.position.set(p.x, top + 0.13 + nearBridge * 0.45, p.z);
     look.copy(road.getPointAt((u + 0.01) % 1)); look.y = truck.position.y;
     truck.lookAt(look);
     wheels.forEach((w) => { w.rotation.x = t * 6; });

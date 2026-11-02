@@ -104,6 +104,8 @@ for (const [, [w, c]] of Object.entries(placed)) {
   ticks.push(...w.ticks); hits.push(...w.hits);
 }
 
+const screenGroups = [...new Set(hits.map((m) => m.parent))];
+
 // Ciel étoilé, visible sur les chapitres sombres
 {
   const n = 1800, pos = new Float32Array(n * 3);
@@ -254,7 +256,7 @@ function buildStations() {
     zoneView('saas', phone ? 40 : 31, 9),
     zoneView('web', phone ? 42 : 33, 10),
     zoneView('games', phone ? 42 : 33, 10),
-    { pos: new THREE.Vector3(0, 110, 40), target: new THREE.Vector3(0, 0, -12) },
+    { pos: phone ? new THREE.Vector3(0, 120, 60) : new THREE.Vector3(-6, 96, 118), target: phone ? new THREE.Vector3(0, -30, -12) : new THREE.Vector3(-36, -10, -14) },
   ];
   posCurve = new THREE.CatmullRomCurve3(st.map((s) => s.pos), false, 'centripetal');
   tgtCurve = new THREE.CatmullRomCurve3(st.map((s) => s.target), false, 'centripetal');
@@ -419,6 +421,10 @@ function frame() {
     root.style.setProperty('--bar-ground', active === 0 ? 'transparent' : s.ground);
     navLinks.forEach((l, j) => l.classList.toggle('on', j === active - 1));
   }
+
+  // Vue finale (de haut) : les écrans se replient, vus de dessus ils ne montrent que leur dos
+  const fold = THREE.MathUtils.smoothstep(p, N - 1.8, N - 1.25);
+  screenGroups.forEach((s) => { s.visible = fold < 0.995; s.scale.setScalar(1 - fold * 0.99); });
 
   if (!reduceMotion) ticks.forEach((fn) => fn(t, dt));
   canvas.style.cursor = '';
