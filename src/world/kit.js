@@ -40,7 +40,7 @@ export function island({ r = 9, top = '#5a8f4e', soil = '#6b4a33', rock = '#4a45
     if (v.y > 0) v.y += (1 - Math.hypot(v.x, v.z) / (r * 1.1)) * 0.25;
     p.setXYZ(i, v.x, v.y, v.z);
   }
-  capGeo.computeVertexNormals();
+  capGeo.computeVertexNormals(); fixNormals(capGeo);
   const cap = new THREE.Mesh(capGeo, mat(top, { roughness: 0.92 }));
   cap.position.y = 0.45;
 
@@ -51,7 +51,7 @@ export function island({ r = 9, top = '#5a8f4e', soil = '#6b4a33', rock = '#4a45
     v.fromBufferAttribute(sp, i);
     const k = edge(Math.atan2(v.z, v.x)); sp.setXYZ(i, v.x * k, v.y, v.z * k);
   }
-  soilGeo.computeVertexNormals();
+  soilGeo.computeVertexNormals(); fixNormals(soilGeo);
   const soilMesh = new THREE.Mesh(soilGeo, flatMat(soil));
   soilMesh.position.y = -0.55;
 
@@ -75,6 +75,7 @@ export function island({ r = 9, top = '#5a8f4e', soil = '#6b4a33', rock = '#4a45
   rockGeo.computeVertexNormals();
   const rockMesh = new THREE.Mesh(rockGeo.toNonIndexed(), new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95 }));
   rockMesh.geometry.computeVertexNormals();
+  fixNormals(rockMesh.geometry);
   rockMesh.position.y = -1.1 - h / 2;
 
   // Rochers suspendus
@@ -173,4 +174,14 @@ export function motes(count, box, color, size, rise, seed = 3) {
     a.needsUpdate = true;
   };
   return pts;
+}
+
+/** Les triangles dégénérés (pointe d'un cône sculpté) donnent des normales NaN : on les remplace. */
+export function fixNormals(geo) {
+  const n = geo.attributes.normal;
+  for (let i = 0; i < n.count; i++) {
+    const x = n.getX(i), y = n.getY(i), z = n.getZ(i);
+    if (!Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z) || x * x + y * y + z * z < 1e-8) n.setXYZ(i, 0, -1, 0);
+  }
+  n.needsUpdate = true;
 }

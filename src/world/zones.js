@@ -65,9 +65,9 @@ export function buildCyber(tex) {
     vertexShader: `varying vec3 vN; varying vec3 vV; varying float vY;
       void main(){ vec4 mv = modelViewMatrix*vec4(position,1.); vN = normalize(normalMatrix*normal); vV = normalize(-mv.xyz); vY = position.y; gl_Position = projectionMatrix*mv; }`,
     fragmentShader: `uniform vec3 uColor; uniform float uTime; varying vec3 vN; varying vec3 vV; varying float vY;
-      void main(){ float f = pow(1.-abs(dot(vN,vV)), 2.6);
+      void main(){ float f = pow(clamp(1.-abs(dot(normalize(vN),normalize(vV))), 0., 1.), 2.6);
         float scan = smoothstep(0.25, 0., abs(fract(uTime*0.18) * ${R.toFixed(1)} - vY)) * 0.5;
-        gl_FragColor = vec4(uColor, f*0.55 + scan*0.35); }`,
+        gl_FragColor = vec4(uColor, clamp(f*0.55 + scan*0.35, 0., 1.)); }`,
   }));
   veil.position.y = 1.07;
   const lineMat = new THREE.LineBasicMaterial({ color: '#2ee6c5', transparent: true, opacity: 0.45 });

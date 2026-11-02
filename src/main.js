@@ -4,6 +4,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { zones, projects } from './projects.js';
 import { buildCyber, buildSaas, buildWeb, buildGames } from './world/zones.js';
 
@@ -42,11 +43,20 @@ scene.add(hemi, sun);
 
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.55, 0.55, 0.85);
+// Filet de sécurité : un seul pixel NaN ou infini suffit à noircir de grands blocs une fois flouté par le bloom
+composer.addPass(new ShaderPass({
+  uniforms: { tDiffuse: { value: null } },
+  vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }',
+  fragmentShader: `uniform sampler2D tDiffuse; varying vec2 vUv;
+    void main(){ vec4 c = texture2D(tDiffuse, vUv);
+      bool bad = !(c.r == c.r) || !(c.g == c.g) || !(c.b == c.b) || !(c.a == c.a) || c.r > 1e4 || c.g > 1e4 || c.b > 1e4;
+      gl_FragColor = bad ? vec4(0.) : clamp(c, 0., 64.); }`,
+}));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.45, 0.5, 0.96);
 // Le bloom est coupé sur les rendus logiciels (SwiftShader), où il ne s'affiche pas correctement
 const gl = renderer.getContext(), dbg = gl.getExtension('WEBGL_debug_renderer_info');
 const software = /swiftshader|llvmpipe|software/i.test(dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : '');
-const useComposer = !software && !q.has('raw');
+const useComposer = !q.has('raw');
 if (useComposer) composer.addPass(bloom);
 composer.addPass(new OutputPass());
 
@@ -133,7 +143,7 @@ zones.forEach((z, i) => {
       <p class="text rise" style="--delay:120ms">${z.text}</p>
       ${feature}${later}${z.id === 'cyber' ? triage : ''}
     </div>
-    <div class="stage"><p class="stage-caption">${captions[z.id]}</p></div>`;
+    <div class="stage" aria-hidden="true"></div>`;
   contact.before(s);
 });
 
