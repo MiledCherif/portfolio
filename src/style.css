@@ -68,6 +68,17 @@ main { position: relative; z-index: 10; }
 .feature:hover .name span { transform: translateX(6px); }
 .feature p { margin-top: 6px; max-width: 46ch; }
 
+.more { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px 20px; }
+.more button { display: block; text-align: left; width: 100%; }
+.more figure { overflow: hidden; background: color-mix(in srgb, var(--z-ink) 8%, var(--z-ground)); }
+.more img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; transition: transform .9s var(--ease); }
+.more button:hover img { transform: scale(1.05); }
+.more .name { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-top: 12px; }
+.more .name b { font-weight: 800; font-size: 22px; letter-spacing: -.03em; }
+.more .name span { font-weight: 700; color: var(--z-accent); transition: transform .3s var(--ease); }
+.more button:hover .name span { transform: translateX(5px); }
+.more p { margin-top: 4px; font-size: 15px; line-height: 1.45; opacity: .8; }
+.p-note { max-width: 980px; margin: 14px auto 0; font-size: 14px; opacity: .65; }
 .later { margin-top: 48px; display: grid; gap: 18px; }
 .later div { padding: 20px 22px; background: color-mix(in srgb, var(--z-ink) 7%, var(--z-ground)); }
 .later b { font-weight: 700; font-size: 20px; letter-spacing: -.02em; }

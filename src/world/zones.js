@@ -551,10 +551,39 @@ export function buildGames() {
     g.add(m); minis.push(m);
   }
 
+  // Navire pirate volant (Pavillon Noir) qui tourne autour de l'île
+  const ship = new THREE.Group();
+  {
+    const wood = mat('#5a3a22', { roughness: 0.8 }), woodDark = mat('#3a2414', { roughness: 0.85 });
+    const hullShape = new THREE.Shape();
+    hullShape.moveTo(-1.9, 0.5); hullShape.lineTo(1.6, 0.5); hullShape.quadraticCurveTo(2.5, 0.55, 2.3, 0.9);
+    hullShape.lineTo(2.6, 1.0); hullShape.lineTo(2.2, 0.15); hullShape.quadraticCurveTo(1.2, -0.55, -1.2, -0.45);
+    hullShape.quadraticCurveTo(-2.0, -0.3, -2.1, 0.9); hullShape.lineTo(-1.9, 0.5);
+    const hull = new THREE.Mesh(new THREE.ExtrudeGeometry(hullShape, { depth: 1.1, bevelEnabled: true, bevelSize: 0.12, bevelThickness: 0.12, bevelSegments: 2 }), wood);
+    hull.position.z = -0.55; ship.add(hull);
+    const deck = new THREE.Mesh(new THREE.BoxGeometry(3.7, 0.08, 1.15), woodDark); deck.position.set(0.1, 0.52, 0); ship.add(deck);
+    const stern = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.5, 1.2), wood); stern.position.set(-1.6, 0.8, 0); ship.add(stern);
+    const sailMat = new THREE.MeshStandardMaterial({ color: '#1b1b1f', roughness: 0.9, side: THREE.DoubleSide });
+    [[-0.4, 3.2, 1.0], [1.1, 2.6, 0.8]].forEach(([x, h, w]) => {
+      const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, h, 8), woodDark); mast.position.set(x, 0.5 + h / 2, 0); ship.add(mast);
+      const sg = new THREE.PlaneGeometry(w * 1.5, h * 0.42, 6, 4);
+      const pa = sg.attributes.position; for (let i = 0; i < pa.count; i++) pa.setZ(i, Math.cos(pa.getX(i) / (w * 0.75) * 1.4) * 0.22);
+      sg.computeVertexNormals();
+      const sail = new THREE.Mesh(sg, sailMat); sail.rotation.y = Math.PI / 2; sail.position.set(x + 0.05, 0.6 + h * 0.58, 0); ship.add(sail);
+    });
+    const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.3), new THREE.MeshStandardMaterial({ color: '#111', side: THREE.DoubleSide }));
+    flag.position.set(-0.15, 3.85, 0); ship.add(flag);
+    const lantern = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), glow('#ffb347', 2)); lantern.position.set(-2.05, 1.2, 0); ship.add(lantern);
+    shadow(ship);
+  }
+  ship.scale.setScalar(0.85); g.add(ship);
+
   const flies = motes(160, new THREE.Vector3(22, 10, 22), '#ffe28a', 0.12, 0.25, 8);
   flies.position.y = 1; g.add(flies);
 
   ticks.push((t, dt) => {
+    { const a = t * 0.12 + 2.2, R = 13.5; ship.position.set(Math.cos(a) * R, 3.2 + Math.sin(t * 0.9) * 0.35, Math.sin(a) * R);
+      ship.rotation.set(Math.sin(t * 1.1) * 0.06, -a, Math.sin(t * 0.8) * 0.05); }
     crystal.rotation.y = t * 0.6; crystal.position.y = 10 + Math.sin(t * 1.2) * 0.4;
     halo.position.y = crystal.position.y; halo.rotation.x = Math.PI / 2 + Math.sin(t * 0.5) * 0.3; halo.rotation.y = t * 0.3;
     minis.forEach((m, i) => { m.position.y = 5 + i * 1.4 + Math.sin(t * 0.6 + i) * 0.5; m.rotation.y = t * 0.08 * (i % 2 ? 1 : -1); });

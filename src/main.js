@@ -190,13 +190,17 @@ zones.forEach((z, i) => {
         <span class="name"><b>${main.name}</b><span>Ouvrir le projet →</span></span>
         <p>${main.summary}</p></button>`
     : `<div class="later rise" style="--delay:180ms"><div><b>${main.name}</b><p>${main.summary} Captures et description à venir.</p></div></div>`;
-  const later = rest.length ? `<div class="later rise" style="--delay:240ms">${rest.map((p) => `<div><b>${p.name}</b><p>${p.summary} À venir sur le portfolio.</p></div>`).join('')}</div>` : '';
+  const ready = rest.filter((p) => p.images.length), soon = rest.filter((p) => !p.images.length);
+  const more = ready.length ? `<div class="more rise" style="--delay:240ms">${ready.map((p) => `<button data-project="${p.id}">
+      <figure><img src="${p.images[0]}" alt="Capture de ${p.name}" loading="lazy" width="2160" height="1350"></figure>
+      <span class="name"><b>${p.name}</b><span>→</span></span><p>${p.summary}</p></button>`).join('')}</div>` : '';
+  const later = soon.length ? `<div class="later rise" style="--delay:280ms">${soon.map((p) => `<div><b>${p.name}</b><p>${p.summary} À venir sur le portfolio.</p></div>`).join('')}</div>` : '';
   s.innerHTML = `
     <div class="column">
       <h2 class="rise">${z.title}</h2>
       <p class="statement rise" style="--delay:70ms">${z.tagline}</p>
       <p class="text rise" style="--delay:120ms">${z.text}</p>
-      ${feature}${later}${z.id === 'cyber' ? triage : ''}
+      ${feature}${more}${later}${z.id === 'cyber' ? triage : ''}
     </div>
     <div class="stage" aria-hidden="true"></div>`;
   contact.before(s);
@@ -294,6 +298,7 @@ function openProject(id, x = innerWidth / 2, y = innerHeight / 2) {
     ${p.images.length ? `<div class="p-gallery"><div class="p-main"><img src="${p.images[0]}" alt="Capture de ${p.name}" width="2160" height="1350"></div>
       <div class="p-thumbs">${p.images.map((src, i) => `<button class="${i ? '' : 'on'}" data-src="${src}" style="background-image:url('${src}')" aria-label="Capture ${i + 1} sur ${p.images.length}"></button>`).join('')}</div></div>`
       : `<p class="p-empty">${p.body[0]}</p>`}
+    ${p.note ? `<p class="p-note">${p.note}</p>` : ''}
     ${p.pending ? '' : `<div class="p-cols">
       <div>${p.body.map((t) => `<p>${t}</p>`).join('')}</div>
       <div><h3>Mon rôle</h3><p>${p.role}</p>
