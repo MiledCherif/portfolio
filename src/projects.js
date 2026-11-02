@@ -1,0 +1,117 @@
+// Contenu du portfolio : un univers = une zone du monde 3D.
+const c = (p, f) => `${import.meta.env.BASE_URL}captures/${p}/${f}.webp`;
+
+export const zones = [
+  {
+    id: 'cyber',
+    kicker: 'Univers 01',
+    title: 'Cybersécurité',
+    tagline: 'Analyste programmeur à l’Hôpital Montfort.',
+    text:
+      'Je conçois les outils qui protègent les données de santé, et je travaille avec les équipes sur les analyses PIA (vie privée) et TRA (menaces et risques) des fournisseurs.',
+    accent: '#2ee6c5',
+    projects: ['riskeo'],
+  },
+  {
+    id: 'saas',
+    kicker: 'Univers 02',
+    title: 'Produits SaaS',
+    tagline: 'Des outils métier pensés pour les équipes.',
+    text: 'Tableaux de bord, pipelines commerciaux, suivi de campagnes : des applications complètes, de la base de données à l’interface.',
+    accent: '#8fb4ff',
+    projects: ['tracktarget'],
+  },
+  {
+    id: 'web',
+    kicker: 'Univers 03',
+    title: 'Sites & plateformes',
+    tagline: 'Des produits en ligne, pour de vrais utilisateurs.',
+    text: 'Marketplaces, sites vitrines, communautés : des expériences web soignées, bilingues et prêtes pour la production.',
+    accent: '#ffb86b',
+    projects: ['yourmove', 'starryone', 'anime'],
+  },
+  {
+    id: 'games',
+    kicker: 'Univers 04',
+    title: 'Jeux',
+    tagline: 'Là où je m’amuse le plus.',
+    text: 'Des mondes, des règles, des histoires. Ici on laisse le sérieux au vestiaire.',
+    accent: '#d58bff',
+    projects: ['aldera'],
+  },
+];
+
+export const projects = {
+  riskeo: {
+    name: 'Riskéo',
+    year: 'En production',
+    summary: 'Plateforme de gestion des risques liés aux tiers (TPRM) pour l’Hôpital Montfort.',
+    role: 'Conception et développement de A à Z, support applicatif, accompagnement des analyses PIA / TRA.',
+    body: [
+      'Riskéo centralise l’évaluation de sécurité des fournisseurs de l’hôpital : invitation du fournisseur, questionnaire adapté au profil de risque, analyse par les équipes PIA et TRA, décision finale et suivi de la validité.',
+      'Le score de conformité, la priorisation (impact financier, patient, opérationnel, sécurité), les incidents, l’inventaire des actifs et le journal d’audit donnent une vue complète du portefeuille fournisseurs.',
+    ],
+    stack: ['Python', 'Django', 'Chart.js', 'WeasyPrint (rapports PDF)', 'i18n FR / EN', 'IIS'],
+    highlights: ['Workflow multi-rôles : owner, analystes PIA/TRA, fournisseurs', 'Rapports PDF générés automatiquement', 'Synchronisation de scores de sécurité externes'],
+    images: [c('riskeo', '01-dashboard-owner'), c('riskeo', '03-fiche-fournisseur'), c('riskeo', '00-connexion'), c('riskeo', '02-fournisseurs'), c('riskeo', '04-inventaire'), c('riskeo', '05-calendrier')],
+  },
+  tracktarget: {
+    name: 'TrackTarget',
+    year: '2025',
+    summary: 'SaaS de pilotage pour les équipes marketing et commerciales.',
+    role: 'Développement complet : modèle de données, tableaux de bord, messagerie d’équipe.',
+    body: [
+      'TrackTarget suit tout le cycle commercial : prospects, clients, projets, transactions et campagnes marketing, avec la région et l’investissement de chaque action.',
+      'Le tableau de bord calcule les ventes de la semaine et du mois, leur évolution, la répartition géographique des clients et le retour sur investissement des campagnes.',
+    ],
+    stack: ['Python', 'Django', 'Matplotlib', 'Bootstrap 5', 'Render'],
+    highlights: ['Graphiques de ventes générés côté serveur', 'Réseau d’équipe et messagerie interne', 'Carte des clients par région'],
+    images: [c('tracktarget', '01-dashboard'), c('tracktarget', '02-transactions'), c('tracktarget', '05-campagnes'), c('tracktarget', '03-clients'), c('tracktarget', '07-carte'), c('tracktarget', '08-messages')],
+  },
+  yourmove: {
+    name: 'YourMove',
+    year: '2026',
+    summary: 'La marketplace qui relie les clients aux déménageurs indépendants, à Montréal, Gatineau et Ottawa.',
+    role: 'Conception produit et développement full-stack.',
+    body: [
+      'Le client compare des déménageurs vérifiés, obtient une estimation gratuite et réserve en ligne avec un acompte sécurisé. Le déménageur gère son planning, ses zones de service, ses devis et ses avis.',
+      'Un panneau d’administration vérifie les documents des professionnels et suit l’activité de la plateforme.',
+    ],
+    stack: ['Python', 'Django', 'PostgreSQL', 'Stripe', 'Bootstrap 5', 'FR / EN'],
+    highlights: ['Paiement d’acompte avec Stripe', 'Calendrier de disponibilités des déménageurs', 'Vérification des documents professionnels'],
+    images: [c('yourmove', '01-accueil'), c('yourmove', '05-dashboard-demenageur'), c('yourmove', '02-recherche'), c('yourmove', '04-dashboard-client'), c('yourmove', '03-comment'), c('yourmove', '06-panel-admin')],
+  },
+  starryone: {
+    name: 'StarryOne',
+    year: '',
+    summary: 'Site réalisé pour StarryOne.',
+    role: '',
+    body: ['Captures et description à venir.'],
+    stack: [],
+    highlights: [],
+    images: [],
+    pending: true,
+  },
+  anime: {
+    name: 'Site d’anime',
+    year: '',
+    summary: 'Un site pour noter et classer les animes.',
+    role: '',
+    body: ['Nom, captures et description à venir.'],
+    stack: [],
+    highlights: [],
+    images: [],
+    pending: true,
+  },
+  aldera: {
+    name: 'Échos d’Aldera',
+    year: '',
+    summary: 'Un jeu au monde fantasy.',
+    role: '',
+    body: ['Captures, gameplay et description à venir.'],
+    stack: [],
+    highlights: [],
+    images: [],
+    pending: true,
+  },
+};
