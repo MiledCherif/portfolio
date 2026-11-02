@@ -7,6 +7,7 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { zones, projects } from './projects.js';
 import { t, en, applyStatic, switchLang } from './i18n.js';
+import { mountAbout } from './about.js';
 
 applyStatic();
 document.querySelector('.lang')?.addEventListener('click', (e) => { e.preventDefault(); switchLang(); });
@@ -210,6 +211,7 @@ zones.forEach((z, i) => {
   contact.before(s);
 });
 
+mountAbout(contact);
 const chapters = [hero, ...zones.map((z) => document.getElementById(z.id)), contact];
 const navLinks = [...document.querySelectorAll('.bar nav a')];
 

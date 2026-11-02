@@ -55,7 +55,7 @@ export const projects = {
   },
   tracktarget: {
     name: 'TrackTarget',
-    year: '2025',
+    year: '2023',
     summary: 'SaaS de pilotage pour les équipes marketing et commerciales.',
     role: 'Développement complet : modèle de données, tableaux de bord, messagerie d’équipe.',
     body: [
