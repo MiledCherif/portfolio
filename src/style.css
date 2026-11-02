@@ -140,7 +140,21 @@ main { position: relative; z-index: 10; }
 @media (max-width: 860px) {
   .bar nav { display: none; }
   .hero { padding-bottom: 28px; }
-  .hero-foot { flex-direction: column; align-items: flex-start; gap: 24px; }
+  .hero-foot { flex-direction: column; align-items: flex-start; gap: 20px; margin-top: 22px; }
+  .hero-foot p { font-size: 16.5px; }
+  .contact { justify-content: flex-end; padding-top: 0; }
+  .project-inner { padding: 84px var(--margin) 96px; }
+  #project .close { top: 14px; padding: 8px 16px; font-size: 15px; }
+  .p-sub { gap: 10px; margin-top: 18px; }
+  .p-sub p { font-size: 18px; }
+  .p-sub span { font-size: 15px; }
+  .p-gallery { margin-top: 32px; }
+  .p-main { border-radius: 8px; }
+  .p-thumbs button { flex-basis: 92px; }
+  .p-cols p, .p-cols li { font-size: 16px; }
+  .contact h2 { font-size: 38px; }
+  .contact p { margin: 16px 0 22px; font-size: 16.5px; }
+  .contact .signature { margin-top: 44px; }
   .monument, .signature { font-size: 15.5vw; }
   .zone { grid-template-columns: 1fr; }
   .zone .stage { order: -1; height: 62vh; }

@@ -243,27 +243,34 @@ function zoneView(id, dist, height) {
   const pos = center.clone().addScaledVector(out, dist).add(new THREE.Vector3(0, height, 0));
   const right = new THREE.Vector3().crossVectors(out.clone().negate(), new THREE.Vector3(0, 1, 0)).normalize();
   const target = center.clone();
-  if (isPhone()) target.y -= dist * 0.12; // le monde occupe le haut de l'écran
+  if (isPhone()) target.y -= dist * 0.14; // le monde occupe le haut de l'écran
   else target.addScaledVector(right, -dist * 0.2); // le monde occupe la partie droite
   return { pos, target };
 }
-let posCurve, tgtCurve;
+let posCurve, tgtCurve, ups;
 function buildStations() {
   const phone = isPhone();
+  // Sur téléphone (écran en hauteur), la vue d'ensemble est prise d'en haut et tournée d'un quart de tour :
+  // l'arc des îles devient une colonne qui remplit l'écran au lieu d'une ligne coupée sur les côtés.
+  const phoneTop = (tx) => ({ pos: new THREE.Vector3(tx + 120, 200, -16), target: new THREE.Vector3(tx, 0, -16), up: new THREE.Vector3(-1, 0, 0) });
   const st = [
-    { pos: new THREE.Vector3(0, 46, 96), target: new THREE.Vector3(0, phone ? -14 : -7, -14) },
-    zoneView('cyber', phone ? 40 : 30, 9),
-    zoneView('saas', phone ? 40 : 31, 9),
-    zoneView('web', phone ? 42 : 33, 10),
-    zoneView('games', phone ? 42 : 33, 10),
-    { pos: phone ? new THREE.Vector3(0, 120, 60) : new THREE.Vector3(-6, 96, 118), target: phone ? new THREE.Vector3(0, -30, -12) : new THREE.Vector3(-36, -10, -14) },
+    phone ? phoneTop(40) : { pos: new THREE.Vector3(0, 46, 96), target: new THREE.Vector3(0, -7, -14) },
+    zoneView('cyber', phone ? 58 : 30, phone ? 14 : 9),
+    zoneView('saas', phone ? 60 : 31, phone ? 14 : 9),
+    zoneView('web', phone ? 62 : 33, phone ? 15 : 10),
+    zoneView('games', phone ? 60 : 33, phone ? 15 : 10),
+    phone ? phoneTop(66) : { pos: new THREE.Vector3(-6, 96, 118), target: new THREE.Vector3(-36, -10, -14) },
   ];
+  ups = st.map((x) => x.up || new THREE.Vector3(0, 1, 0));
   posCurve = new THREE.CatmullRomCurve3(st.map((s) => s.pos), false, 'centripetal');
   tgtCurve = new THREE.CatmullRomCurve3(st.map((s) => s.target), false, 'centripetal');
 }
 buildStations();
 const N = chapters.length;
-const fogs = [[70, 200], [36, 92], [36, 92], [38, 96], [38, 96], [90, 240]];
+const fogsDesk = [[70, 200], [36, 92], [36, 92], [38, 96], [38, 96], [90, 240]];
+// Sur téléphone la caméra est plus loin : le brouillard recule d'autant
+const fogsPhone = [[200, 420], [62, 150], [62, 150], [66, 156], [64, 152], [200, 420]];
+const fogsFor = () => (isPhone() ? fogsPhone : fogsDesk);
 const ease = (u) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
 
 function scrollProgress() {
@@ -435,6 +442,8 @@ function frame() {
     camera.position.x += parallax.x * 1.4;
     camera.position.y += parallax.y * 0.9;
   }
+  camera.up.lerpVectors(ups[i], ups[i + 1], u).normalize();
+  if (camera.up.lengthSq() < 0.5) camera.up.set(0, 1, 0);
   camera.lookAt(look);
   if (bank) camera.rotateZ(bank);
 
@@ -447,13 +456,14 @@ function frame() {
   warp.enabled = speedAmt > 0.004;
   const fov = 40 + speedAmt * 9;
   if (Math.abs(camera.fov - fov) > 0.01) { camera.fov = fov; camera.updateProjectionMatrix(); }
+  cloudSea.visible = !isPhone(); // vue de dessus sur téléphone : la mer de nuages brouille l'image
   cloudSea.children.forEach((m) => { m.position.x += m.userData.v * dt; if (m.position.x > 150) m.position.x = -150; });
 
   const a = stationColors[i], b = stationColors[i + 1];
   // Le fond change d'un coup au milieu de la transition : pas de fondu entre deux champs de couleur
   const cur = u < 0.5 ? a : b;
   scene.background.set(cur.ground); scene.fog.color.set(cur.ground);
-  const fa = fogs[i], fb = fogs[i + 1];
+  const fogs = fogsFor(), fa = fogs[i], fb = fogs[i + 1];
   scene.fog.near = THREE.MathUtils.lerp(fa[0], fb[0], u); scene.fog.far = THREE.MathUtils.lerp(fa[1], fb[1], u);
   const active = Math.round(p);
   if (active !== activeShown) {
@@ -467,7 +477,8 @@ function frame() {
   }
 
   // Vue finale (de haut) : les écrans se replient, vus de dessus ils ne montrent que leur dos
-  const fold = THREE.MathUtils.smoothstep(p, N - 1.8, N - 1.25);
+  let fold = THREE.MathUtils.smoothstep(p, N - 1.8, N - 1.25);
+  if (isPhone()) fold = Math.max(fold, 1 - THREE.MathUtils.smoothstep(p, 0.25, 0.8));
   screenGroups.forEach((s) => { s.visible = fold < 0.995; s.scale.setScalar(1 - fold * 0.99); });
 
   if (!reduceMotion) ticks.forEach((fn) => fn(t, dt));
