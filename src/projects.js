@@ -1,3 +1,5 @@
+import { en } from './i18n.js';
+import { zonesEn, projectsEn } from './projects.en.js';
 // Contenu du portfolio : un univers = une zone du monde 3D.
 const c = (p, f) => `${import.meta.env.BASE_URL}captures/${p}/${f}.webp`;
 
@@ -145,3 +147,9 @@ export const projects = {
     note: 'Visuels d’illustration : schéma de la carte et écran de draft.',
   },
 };
+
+// Version anglaise
+if (en) {
+  zones.forEach((z) => Object.assign(z, zonesEn[z.id]));
+  for (const [id, p] of Object.entries(projectsEn)) Object.assign(projects[id], p);
+}

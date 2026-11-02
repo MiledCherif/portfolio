@@ -36,6 +36,9 @@ body.ready #loader { opacity: 0; visibility: hidden; }
 .bar nav a.on { text-decoration: underline; text-underline-offset: 6px; text-decoration-thickness: 2px; }
 .bar-action { padding: 10px 20px; border-radius: 999px; background: var(--bar-accent, var(--accent)); color: var(--bar-on, var(--on-accent)); transition: transform .3s var(--ease), background .5s, color .5s; }
 .bar-action:hover { transform: translateY(-2px); }
+.lang { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 999px; border: 1.5px solid color-mix(in srgb, currentColor 35%, transparent); text-decoration: none; font-weight: 700; font-size: 14px; letter-spacing: .04em; transition: border-color .3s, transform .3s var(--ease); }
+.lang:hover { border-color: currentColor; transform: translateY(-2px); }
+.lang + .bar-action { margin-left: -16px; }
 
 /* Chapitres */
 main { position: relative; z-index: 10; }

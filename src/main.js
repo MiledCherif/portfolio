@@ -6,6 +6,10 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { zones, projects } from './projects.js';
+import { t, en, applyStatic, switchLang } from './i18n.js';
+
+applyStatic();
+document.querySelector('.lang')?.addEventListener('click', (e) => { e.preventDefault(); switchLang(); });
 import { buildCyber, buildSaas, buildWeb, buildGames } from './world/zones.js';
 
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -155,28 +159,28 @@ const cloudSea = new THREE.Group(), introClouds = new THREE.Group();
 const hero = document.getElementById('top');
 const contact = document.getElementById('contact');
 const captions = {
-  cyber: 'L’hôpital sous son dôme : chaque fournisseur passe le contrôle avant d’entrer.',
-  saas: 'Un quartier d’affaires : le siège, ses équipes, et les ventes de la semaine en direct.',
-  web: 'Trois villes, une rivière, un pont : le camion fait sa tournée.',
-  games: 'Le château, la cascade et le cristal d’écho.',
+  cyber: t('L’hôpital sous son dôme : chaque fournisseur passe le contrôle avant d’entrer.', 'The hospital under its dome: every vendor goes through the checkpoint before entering.'),
+  saas: t('Un quartier d’affaires : le siège, ses équipes, et les ventes de la semaine en direct.', 'A business district: the headquarters, its teams, and this week’s sales live.'),
+  web: t('Trois villes, une rivière, un pont : le camion fait sa tournée.', 'Three towns, a river, a bridge: the truck makes its rounds.'),
+  games: t('Le château, la cascade, le cristal d’écho et le navire pirate.', 'The castle, the waterfall, the echo crystal and the pirate ship.'),
 };
 const triage = `
   <form class="triage rise" style="--delay:240ms" onsubmit="return false">
-    <h3>Évaluez un fournisseur</h3>
-    <p>Comme dans Riskéo : trois réponses suffisent pour fixer la priorité et le niveau d’analyse.</p>
-    <fieldset><legend>Données traitées</legend><div class="seg">
-      <label><input type="radio" name="data" value="0"><span>Internes</span></label>
-      <label><input type="radio" name="data" value="1"><span>Personnelles</span></label>
-      <label><input type="radio" name="data" value="2" checked><span>Santé (PHI)</span></label></div></fieldset>
-    <fieldset><legend>Accès au réseau de l’hôpital</legend><div class="seg">
-      <label><input type="radio" name="net" value="0"><span>Aucun</span></label>
-      <label><input type="radio" name="net" value="1" checked><span>Application web</span></label>
-      <label><input type="radio" name="net" value="2"><span>VPN et infrastructure</span></label></div></fieldset>
-    <fieldset><legend>Criticité pour les soins</legend><div class="seg">
-      <label><input type="radio" name="crit" value="0"><span>Support</span></label>
-      <label><input type="radio" name="crit" value="1" checked><span>Critique</span></label>
-      <label><input type="radio" name="crit" value="2"><span>Vital</span></label></div></fieldset>
-    <output aria-live="polite"><b>Priorité P2</b><span>Questionnaire standard, analyses PIA et TRA.</span></output>
+    <h3>${t('Évaluez un fournisseur', 'Assess a vendor')}</h3>
+    <p>${t('Comme dans Riskéo : trois réponses suffisent pour fixer la priorité et le niveau d’analyse.', 'Just like in Riskéo: three answers are enough to set the priority and the depth of the review.')}</p>
+    <fieldset><legend>${t('Données traitées', 'Data handled')}</legend><div class="seg">
+      <label><input type="radio" name="data" value="0"><span>${t('Internes', 'Internal')}</span></label>
+      <label><input type="radio" name="data" value="1"><span>${t('Personnelles', 'Personal')}</span></label>
+      <label><input type="radio" name="data" value="2" checked><span>${t('Santé (PHI)', 'Health (PHI)')}</span></label></div></fieldset>
+    <fieldset><legend>${t('Accès au réseau de l’hôpital', 'Access to the hospital network')}</legend><div class="seg">
+      <label><input type="radio" name="net" value="0"><span>${t('Aucun', 'None')}</span></label>
+      <label><input type="radio" name="net" value="1" checked><span>${t('Application web', 'Web application')}</span></label>
+      <label><input type="radio" name="net" value="2"><span>${t('VPN et infrastructure', 'VPN and infrastructure')}</span></label></div></fieldset>
+    <fieldset><legend>${t('Criticité pour les soins', 'Criticality for patient care')}</legend><div class="seg">
+      <label><input type="radio" name="crit" value="0"><span>${t('Support', 'Support')}</span></label>
+      <label><input type="radio" name="crit" value="1" checked><span>${t('Critique', 'Critical')}</span></label>
+      <label><input type="radio" name="crit" value="2"><span>${t('Vital', 'Vital')}</span></label></div></fieldset>
+    <output aria-live="polite"></output>
   </form>`;
 
 zones.forEach((z, i) => {
@@ -186,15 +190,15 @@ zones.forEach((z, i) => {
   const [main, ...rest] = z.projects.map((id) => ({ id, ...projects[id] }));
   const feature = main.images.length
     ? `<button class="feature rise" style="--delay:180ms" data-project="${main.id}">
-        <figure><img src="${main.images[0]}" alt="Capture de ${main.name}" loading="lazy" width="2160" height="1350"></figure>
-        <span class="name"><b>${main.name}</b><span>Ouvrir le projet →</span></span>
+        <figure><img src="${main.images[0]}" alt="${t('Capture de', 'Screenshot of')} ${main.name}" loading="lazy" width="2160" height="1350"></figure>
+        <span class="name"><b>${main.name}</b><span>${t('Ouvrir le projet →', 'Open the project →')}</span></span>
         <p>${main.summary}</p></button>`
-    : `<div class="later rise" style="--delay:180ms"><div><b>${main.name}</b><p>${main.summary} Captures et description à venir.</p></div></div>`;
+    : `<div class="later rise" style="--delay:180ms"><div><b>${main.name}</b><p>${main.summary} ${t('Captures et description à venir.', 'Screenshots and description coming soon.')}</p></div></div>`;
   const ready = rest.filter((p) => p.images.length), soon = rest.filter((p) => !p.images.length);
   const more = ready.length ? `<div class="more rise" style="--delay:240ms">${ready.map((p) => `<button data-project="${p.id}">
-      <figure><img src="${p.images[0]}" alt="Capture de ${p.name}" loading="lazy" width="2160" height="1350"></figure>
+      <figure><img src="${p.images[0]}" alt="${t('Capture de', 'Screenshot of')} ${p.name}" loading="lazy" width="2160" height="1350"></figure>
       <span class="name"><b>${p.name}</b><span>→</span></span><p>${p.summary}</p></button>`).join('')}</div>` : '';
-  const later = soon.length ? `<div class="later rise" style="--delay:280ms">${soon.map((p) => `<div><b>${p.name}</b><p>${p.summary} À venir sur le portfolio.</p></div>`).join('')}</div>` : '';
+  const later = soon.length ? `<div class="later rise" style="--delay:280ms">${soon.map((p) => `<div><b>${p.name}</b><p>${p.summary} ${t('À venir sur le portfolio.', 'Coming soon to the portfolio.')}</p></div>`).join('')}</div>` : '';
   s.innerHTML = `
     <div class="column">
       <h2 class="rise">${z.title}</h2>
@@ -217,9 +221,9 @@ document.querySelectorAll('.contact > *').forEach((el, i) => { el.classList.add(
 /* ---------- Élément interactif : priorité Riskéo ---------- */
 const form = document.querySelector('.triage');
 const verdicts = {
-  P1: ['risk', '#ff6b5f', 'Priorité P1', 'Questionnaire complet, analyses PIA et TRA, revue immédiate par l’owner.'],
-  P2: ['watch', '#f5b544', 'Priorité P2', 'Questionnaire standard, analyses PIA et TRA.'],
-  P3: ['ok', '#2ee6c5', 'Priorité P3', 'Questionnaire court, suivi standard.'],
+  P1: ['risk', '#ff6b5f', t('Priorité P1', 'Priority P1'), t('Questionnaire complet, analyses PIA et TRA, revue immédiate par l’owner.', 'Full questionnaire, PIA and TRA assessments, immediate review by the owner.')],
+  P2: ['watch', '#f5b544', t('Priorité P2', 'Priority P2'), t('Questionnaire standard, analyses PIA et TRA.', 'Standard questionnaire, PIA and TRA assessments.')],
+  P3: ['ok', '#2ee6c5', t('Priorité P3', 'Priority P3'), t('Questionnaire court, suivi standard.', 'Short questionnaire, standard follow-up.')],
 };
 function triageUpdate() {
   const v = (n) => +form.querySelector(`input[name=${n}]:checked`).value;
@@ -295,15 +299,15 @@ function openProject(id, x = innerWidth / 2, y = innerHeight / 2) {
   inner.innerHTML = `
     <div class="p-head-wrap"><h2 class="p-title" id="project-title">${p.name}</h2>
     <div class="p-sub"><p>${p.summary}</p><span>${z.title}${p.year ? ` · ${p.year}` : ''}</span></div></div>
-    ${p.images.length ? `<div class="p-gallery"><div class="p-main"><img src="${p.images[0]}" alt="Capture de ${p.name}" width="2160" height="1350"></div>
-      <div class="p-thumbs">${p.images.map((src, i) => `<button class="${i ? '' : 'on'}" data-src="${src}" style="background-image:url('${src}')" aria-label="Capture ${i + 1} sur ${p.images.length}"></button>`).join('')}</div></div>`
+    ${p.images.length ? `<div class="p-gallery"><div class="p-main"><img src="${p.images[0]}" alt="${t('Capture de', 'Screenshot of')} ${p.name}" width="2160" height="1350"></div>
+      <div class="p-thumbs">${p.images.map((src, i) => `<button class="${i ? '' : 'on'}" data-src="${src}" style="background-image:url('${src}')" aria-label="${t('Capture', 'Screenshot')} ${i + 1} ${t('sur', 'of')} ${p.images.length}"></button>`).join('')}</div></div>`
       : `<p class="p-empty">${p.body[0]}</p>`}
     ${p.note ? `<p class="p-note">${p.note}</p>` : ''}
     ${p.pending ? '' : `<div class="p-cols">
       <div>${p.body.map((t) => `<p>${t}</p>`).join('')}</div>
-      <div><h3>Mon rôle</h3><p>${p.role}</p>
-        <h3>Technologies</h3><div class="p-tags">${p.stack.map((s) => `<span>${s}</span>`).join('')}</div>
-        <h3>Ce qui le distingue</h3><ul>${p.highlights.map((h) => `<li>${h}</li>`).join('')}</ul></div></div>`}`;
+      <div><h3>${t('Mon rôle', 'My role')}</h3><p>${p.role}</p>
+        <h3>${t('Technologies', 'Tech stack')}</h3><div class="p-tags">${p.stack.map((s) => `<span>${s}</span>`).join('')}</div>
+        <h3>${t('Ce qui le distingue', 'What sets it apart')}</h3><ul>${p.highlights.map((h) => `<li>${h}</li>`).join('')}</ul></div></div>`}`;
   inner.querySelectorAll('.p-thumbs button').forEach((b) => b.addEventListener('click', () => {
     inner.querySelector('.p-main img').src = b.dataset.src;
     inner.querySelectorAll('.p-thumbs button').forEach((o) => o.classList.toggle('on', o === b));
@@ -364,7 +368,7 @@ function updateIslands(dt) {
     hoveredZone = z;
     if (z) {
       const info = zones.find((x) => x.id === z);
-      tag.innerHTML = `<strong>${info.title}</strong><span>Visiter →</span>`;
+      tag.innerHTML = `<strong>${info.title}</strong><span>${t('Visiter →', 'Visit →')}</span>`;
       tag.style.setProperty('--tag-bg', info.accent); tag.style.setProperty('--tag-ink', info.onAccent);
     }
     tag.classList.toggle('on', !!z);
