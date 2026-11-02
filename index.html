@@ -3,46 +3,51 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Miled Cherif — Développeur</title>
-  <meta name="description" content="Portfolio de Miled Cherif : développeur, analyste programmeur en cybersécurité, créateur de SaaS, de plateformes web et de jeux." />
+  <title>Miled Cherif — Développeur et analyste en cybersécurité</title>
+  <meta name="description" content="Miled Cherif construit des plateformes de sécurité pour l’Hôpital Montfort, des SaaS métier, des sites web et des jeux." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/src/style.css" />
 </head>
 <body>
   <canvas id="world" aria-hidden="true"></canvas>
+  <div id="loader" aria-hidden="true"><span>Miled Cherif</span></div>
 
-  <div id="loader"><span>Chargement du monde</span><i></i></div>
-
-  <header class="topbar">
-    <a href="#" class="logo" data-go="0">MC<span>.</span></a>
-    <nav class="rail" aria-label="Univers"></nav>
-    <a class="cta" href="#" data-go="5">Me contacter</a>
+  <header class="bar">
+    <a href="#top" class="wordmark">Miled Cherif</a>
+    <nav aria-label="Univers">
+      <a href="#cyber">Cybersécurité</a>
+      <a href="#saas">SaaS</a>
+      <a href="#web">Web</a>
+      <a href="#games">Jeux</a>
+    </nav>
+    <a class="bar-action" href="#contact">Contact</a>
   </header>
 
-  <main id="panels">
-    <section class="panel hero" data-station="0">
-      <p class="kicker">Développeur · Analyste programmeur · Cybersécurité</p>
-      <h1>Miled<br />Cherif</h1>
-      <p class="lead">Je construis des produits complets : plateformes de sécurité pour le milieu hospitalier, SaaS métier, marketplaces et jeux. Faites défiler pour visiter mes quatre univers.</p>
-      <div class="scroll-hint"><span></span>Défiler</div>
-    </section>
-    <!-- Les panneaux des univers sont générés par main.js -->
-    <section class="panel contact" data-station="5">
-      <p class="kicker">Fin du voyage</p>
-      <h2>On construit quelque chose ensemble ?</h2>
-      <p class="lead">Un produit à lancer, une plateforme à sécuriser, ou juste envie d’en parler.</p>
-      <div class="links">
-        <a href="https://github.com/MiledCherif" target="_blank" rel="noopener">GitHub ↗</a>
+  <main>
+    <section id="top" class="chapter hero" data-station="0">
+      <h1 class="monument">Miled Cherif</h1>
+      <div class="hero-foot">
+        <p>Développeur et analyste programmeur en cybersécurité à l’Hôpital Montfort. Je construis des plateformes de sécurité, des SaaS métier, des sites web et des jeux.</p>
+        <a class="button" href="#cyber">Visiter les quatre mondes</a>
       </div>
     </section>
+
+    <!-- Les chapitres des univers sont insérés ici par main.js -->
+
+    <footer id="contact" class="chapter contact" data-station="5">
+      <div class="contact-inner">
+        <h2>Un projet à construire ou à sécuriser ?</h2>
+        <p>Plateforme métier, analyse de risques, site ou jeu : je réponds vite.</p>
+        <a class="button" href="https://github.com/MiledCherif" target="_blank" rel="noopener">Voir mon GitHub</a>
+      </div>
+      <p class="signature" aria-hidden="true">Miled Cherif</p>
+    </footer>
   </main>
 
-  <div id="scroller"></div>
-
-  <div id="project" role="dialog" aria-modal="true" aria-hidden="true">
-    <button class="close" aria-label="Fermer">✕</button>
+  <div id="project" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="project-title">
+    <button class="close" aria-label="Fermer la fiche projet">Fermer</button>
     <div class="project-inner"></div>
   </div>
 
