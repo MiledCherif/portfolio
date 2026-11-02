@@ -165,3 +165,11 @@ body.landed .hero .monument .ch { opacity: 1; transform: none; filter: none; }
 body.landed .hero .hero-foot { opacity: 1; transform: none; }
 body:not(.landed) .bar { opacity: 0; }
 @media (prefers-reduced-motion: reduce) { .hero .monument .ch, .hero .hero-foot { transition: none; } }
+
+/* Étiquette d'île au survol (vue d'ensemble) */
+.island-tag { position: fixed; left: 0; top: 0; z-index: 20; pointer-events: none; display: flex; align-items: center; gap: 14px;
+  padding: 12px 20px; border-radius: 999px; background: var(--tag-bg, #f3f1ec); color: var(--tag-ink, #0c0d0f);
+  font-weight: 700; font-size: 17px; white-space: nowrap; opacity: 0; transition: opacity .25s ease; will-change: transform; }
+.island-tag span { font-weight: 500; opacity: .8; }
+.island-tag.on { opacity: 1; }
+.hero .monument, .contact .signature { pointer-events: none; }

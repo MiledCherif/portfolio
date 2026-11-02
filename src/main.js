@@ -320,14 +320,58 @@ document.addEventListener('click', (e) => {
 const ray = new THREE.Raycaster();
 const pointer = new THREE.Vector2(9, 9), parallax = new THREE.Vector2();
 let pointerOnCanvas = false;
-addEventListener('pointermove', (e) => {
+const onPointer = (e) => {
   pointer.set((e.clientX / innerWidth) * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
   const el = document.elementFromPoint(e.clientX, e.clientY);
   pointerOnCanvas = !!el && (el === canvas || el.classList.contains('stage') || el.classList.contains('hero') || el.classList.contains('contact'));
+};
+addEventListener('pointermove', onPointer);
+addEventListener('pointerdown', onPointer);
+
+/* ---------- Vue d'ensemble : survoler une île, cliquer pour y aller ---------- */
+const islandProxies = Object.entries(placed).map(([id, [w, c]]) => {
+  const m = new THREE.Mesh(new THREE.SphereGeometry(13, 12, 8), new THREE.MeshBasicMaterial());
+  m.visible = false; m.position.copy(c).add(new THREE.Vector3(0, 3, 0)); m.userData.zone = id; m.updateMatrixWorld();
+  return m;
 });
+const tag = document.createElement('div');
+tag.className = 'island-tag'; tag.setAttribute('aria-hidden', 'true');
+document.body.appendChild(tag);
+let hoveredZone = null, overview = false;
+const islandScale = Object.fromEntries(Object.keys(placed).map((id) => [id, 1]));
+const tagPos = new THREE.Vector3();
+function islandUnderPointer() {
+  if (!overview || !pointerOnCanvas || overlay.classList.contains('open')) return null;
+  ray.setFromCamera(pointer, camera);
+  const h = ray.intersectObjects(islandProxies, false)[0];
+  return h ? h.object.userData.zone : null;
+}
+function updateIslands(dt) {
+  const z = islandUnderPointer();
+  if (z !== hoveredZone) {
+    hoveredZone = z;
+    if (z) {
+      const info = zones.find((x) => x.id === z);
+      tag.innerHTML = `<strong>${info.title}</strong><span>Visiter →</span>`;
+      tag.style.setProperty('--tag-bg', info.accent); tag.style.setProperty('--tag-ink', info.onAccent);
+    }
+    tag.classList.toggle('on', !!z);
+  }
+  for (const [id, [w]] of Object.entries(placed)) {
+    const want = id === hoveredZone ? 1.14 : 1;
+    islandScale[id] += (want - islandScale[id]) * (1 - Math.pow(0.0005, dt));
+    w.group.scale.setScalar(islandScale[id]);
+  }
+  if (hoveredZone) {
+    tagPos.copy(placed[hoveredZone][1]).add(new THREE.Vector3(0, 15, 0)).project(camera);
+    tag.style.transform = `translate(${(tagPos.x * 0.5 + 0.5) * innerWidth}px, ${(-tagPos.y * 0.5 + 0.5) * innerHeight}px) translate(-50%, -100%)`;
+  }
+}
 const hitTest = () => { ray.setFromCamera(pointer, camera); return ray.intersectObjects(hits, false)[0]; };
 addEventListener('click', (e) => {
   if (!pointerOnCanvas || overlay.classList.contains('open')) return;
+  const z = islandUnderPointer();
+  if (z) { e.preventDefault(); hoveredZone = null; tag.classList.remove('on'); document.getElementById(z).scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' }); return; }
   const h = hitTest();
   if (h) openProject(h.object.userData.project, e.clientX, e.clientY);
 });
@@ -428,7 +472,10 @@ function frame() {
 
   if (!reduceMotion) ticks.forEach((fn) => fn(t, dt));
   canvas.style.cursor = '';
-  if (pointerOnCanvas && !isPhone()) document.body.style.cursor = hitTest() ? 'pointer' : '';
+  overview = intro >= 1 && (p < 0.3 || p > N - 1.3);
+  updateIslands(dt);
+  if (pointerOnCanvas && !isPhone()) document.body.style.cursor = (hoveredZone || hitTest()) ? 'pointer' : '';
+  else if (!pointerOnCanvas) document.body.style.cursor = '';
 
   if (useComposer) composer.render(); else renderer.render(scene, camera);
   requestAnimationFrame(frame);
