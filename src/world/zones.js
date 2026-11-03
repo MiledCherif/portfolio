@@ -748,81 +748,211 @@ export function buildWeb(tex) {
 /* ------------------------------------------------------------------ */
 /* Jeux : Échos d'Aldera, un château, une cascade, un cristal          */
 /* ------------------------------------------------------------------ */
-export function buildGames() {
+const at = (m, x, y, z) => { m.position.set(x, y, z); return m; };
+
+/** Étiquette flottante (sprite) au nom d'un projet. */
+function makeLabel(text, bg, ink, w = 2.6) {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 128;
+  const x = c.getContext('2d');
+  x.fillStyle = bg; x.beginPath(); x.roundRect(8, 16, 496, 96, 48); x.fill();
+  x.fillStyle = ink; x.font = '800 54px "Bricolage Grotesque", Arial, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, 256, 66);
+  const tx = new THREE.CanvasTexture(c); tx.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tx, toneMapped: false, depthWrite: false }));
+  sp.scale.set(w, w / 4, 1); return sp;
+}
+
+/* ------------------------------------------------------------------ */
+/* Jeux : la vallée d'Aldera, le navire de Pavillon Noir, l'arène RoyalOG */
+/* ------------------------------------------------------------------ */
+export function buildGames(tex) {
   const g = new THREE.Group();
-  const ticks = [];
-  g.add(island({ r: 10, top: '#5b9150', soil: '#6b4a33', rock: '#6a6457', rockDark: '#25221c', seed: 13 }));
+  const ticks = [], hits = [];
+  const rnd = mulberry(21);
+  g.add(island({ r: 10, top: '#5f9a52', soil: '#6b4a33', rock: '#6a6457', rockDark: '#25221c', seed: 13 }));
   const top = 1.16;
-  const stone = mat('#d9d2c3', { roughness: 0.85 }), stoneDark = mat('#b9b09e', { roughness: 0.9 });
-  const roofMat = flatMat('#2c4f6e'), gold = glow('#f2b950', 1.2);
+  const stone = mat('#ddd6c6', { roughness: 0.85 }), stoneDark = mat('#b3aa97', { roughness: 0.9 }), stoneDeep = mat('#8f8676', { roughness: 0.95 });
+  const slate = flatMat('#34557a'), gold = glow('#f2b950', 1.2), warm = glow('#ffc670', 1.6), timber = mat('#4a3324', { roughness: 0.8 });
 
-  // Château : donjon, quatre tours crénelées, remparts
-  const castle = new THREE.Group(); castle.position.set(-1.5, top, -1.5);
-  const keep = new THREE.Mesh(rbox(2.6, 4.2, 2.6, 0.08), stone); keep.position.y = 2.1; castle.add(keep);
-  const keepRoof = new THREE.Mesh(new THREE.ConeGeometry(2.1, 2.4, 4), roofMat); keepRoof.position.y = 5.4; keepRoof.rotation.y = Math.PI / 4; castle.add(keepRoof);
+  /* --- Butte rocheuse et château --- */
+  const C = new THREE.Vector3(-0.4, 0, -3.0), hill = 0.9;
+  const butte = new THREE.Mesh(new THREE.CylinderGeometry(4.0, 4.6, hill, 14, 1), flatMat('#7d7464')); butte.position.set(C.x, top + hill / 2 - 0.05, C.z); butte.rotation.y = 0.3; g.add(butte);
+  const butteTop = new THREE.Mesh(new THREE.CylinderGeometry(3.95, 3.95, 0.06, 28), mat('#6aa55b', { roughness: 0.95 })); butteTop.position.set(C.x, top + hill, C.z); g.add(butteTop);
+  for (let k = 0; k < 12; k++) { const a = (k / 12) * TAU + rnd() * 0.3; const r = new THREE.Mesh(new THREE.DodecahedronGeometry(0.35 + rnd() * 0.35, 0), flatMat('#857b69')); r.position.set(C.x + Math.cos(a) * 4.4, top + 0.25, C.z + Math.sin(a) * 4.4); r.castShadow = true; g.add(r); }
+  // Douves autour de la butte
+  const moat = new THREE.Mesh(new THREE.RingGeometry(4.55, 5.2, 64), new THREE.MeshStandardMaterial({ color: '#4aa3d8', roughness: 0.08, metalness: 0.2, emissive: '#14506f', emissiveIntensity: 0.45, side: THREE.DoubleSide }));
+  moat.rotation.x = -Math.PI / 2; moat.position.set(C.x, top + 0.05, C.z); g.add(moat);
+
+  const castle = new THREE.Group(); castle.position.set(C.x, top + hill, C.z);
   const crenel = (y, r, n, parent, x = 0, z = 0) => {
-    for (let i = 0; i < n; i++) {
-      const a = (i / n) * TAU, b = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.32, 0.3), stoneDark);
-      b.position.set(x + Math.cos(a) * r, y, z + Math.sin(a) * r); b.rotation.y = -a; parent.add(b);
-    }
+    for (let i = 0; i < n; i++) { const a = (i / n) * TAU, b = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.28, 0.26), stoneDark); b.position.set(x + Math.cos(a) * r, y, z + Math.sin(a) * r); b.rotation.y = -a; parent.add(b); }
   };
-  [[-2.6, -2.6], [2.6, -2.6], [-2.6, 2.6], [2.6, 2.6]].forEach(([x, z], i) => {
-    const h = 3.2 + (i === 1 ? 1.4 : 0);
-    const tw = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.95, h, 20), stone); tw.position.set(x, h / 2, z); castle.add(tw);
-    crenel(h + 0.16, 0.8, 10, castle, x, z);
-    const cone = new THREE.Mesh(new THREE.ConeGeometry(1.05, 1.9, 20), roofMat); cone.position.set(x, h + 1.25, z); castle.add(cone);
-    const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.3), new THREE.MeshStandardMaterial({ color: '#f2b950', side: THREE.DoubleSide }));
-    flag.position.set(x + 0.25, h + 2.45, z); castle.add(flag);
-    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.8, 6), stoneDark); pole.position.set(x, h + 2.3, z); castle.add(pole);
+  const archWin = (w, h, matW = warm) => { const sh = new THREE.Shape(); sh.moveTo(-w / 2, 0); sh.lineTo(-w / 2, h - w / 2); sh.absarc(0, h - w / 2, w / 2, Math.PI, 0, true); sh.lineTo(w / 2, 0); sh.lineTo(-w / 2, 0); return new THREE.Mesh(new THREE.ShapeGeometry(sh, 8), matW); };
+  // Donjon
+  const keep = new THREE.Mesh(rbox(2.4, 4.0, 2.4, 0.06), stone); keep.position.y = 2.0; castle.add(keep);
+  for (let y = 0.5; y < 4; y += 0.5) { const course = new THREE.Mesh(new THREE.BoxGeometry(2.44, 0.03, 2.44), stoneDark); course.position.y = y; castle.add(course); }
+  crenel(4.15, 1.25, 16, castle);
+  const keepRoof = new THREE.Mesh(new THREE.ConeGeometry(1.55, 2.2, 4), slate); keepRoof.position.y = 5.3; keepRoof.rotation.y = Math.PI / 4; castle.add(keepRoof);
+  [[0, 2.6], [-0.6, 1.4], [0.6, 1.4]].forEach(([x, y]) => { const w = archWin(0.34, 0.6); w.position.set(x, y, 1.215); castle.add(w); });
+  const rose = new THREE.Mesh(new THREE.CircleGeometry(0.28, 20), glow('#ff9d5c', 1.4)); rose.position.set(0, 3.5, 1.215); castle.add(rose);
+  // Tours d'angle
+  [[-2.4, -2.0, 3.6], [2.4, -2.0, 3.9], [-2.4, 1.6, 3.0], [2.4, 1.6, 3.0]].forEach(([x, z, h], k) => {
+    const tw = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.82, h, 24), stone); tw.position.set(x, h / 2, z); castle.add(tw);
+    const corbel = new THREE.Mesh(new THREE.CylinderGeometry(0.86, 0.72, 0.22, 24), stoneDark); corbel.position.set(x, h - 0.05, z); castle.add(corbel);
+    crenel(h + 0.18, 0.78, 10, castle, x, z);
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(0.95, 1.9, 24), slate); cone.position.set(x, h + 1.25, z); castle.add(cone);
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.7, 6), stoneDeep); pole.position.set(x, h + 2.45, z); castle.add(pole);
+    const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.28), new THREE.MeshStandardMaterial({ color: k % 2 ? '#c2362b' : '#f2b950', side: THREE.DoubleSide })); flag.position.set(x + 0.26, h + 2.62, z); castle.add(flag); flag.userData.flag = true;
+    for (let y = 0.9; y < h - 0.4; y += 1.0) { const w = archWin(0.18, 0.34, rnd() > 0.35 ? warm : mat('#2a2a30')); const a = Math.atan2(x + 0.2, z + 3); w.position.set(x + Math.sin(a) * 0.8, y, z + Math.cos(a) * 0.8); w.rotation.y = a; castle.add(w); }
   });
-  const walls = [[0, -2.6, 5.2, 0], [0, 2.6, 5.2, 0], [-2.6, 0, 5.2, Math.PI / 2], [2.6, 0, 5.2, Math.PI / 2]];
-  walls.forEach(([x, z, l, ry]) => {
-    const w = new THREE.Mesh(new THREE.BoxGeometry(l, 1.8, 0.45), stone); w.position.set(x, 0.9, z); w.rotation.y = ry; castle.add(w);
+  // Remparts et chemin de ronde
+  [[0, 1.6, 4.8, 0], [0, -2.0, 4.8, 0], [-2.4, -0.2, 3.6, Math.PI / 2], [2.4, -0.2, 3.6, Math.PI / 2]].forEach(([x, z, l, ry]) => {
+    const w = new THREE.Mesh(new THREE.BoxGeometry(l, 1.6, 0.4), stone); w.position.set(x, 0.8, z); w.rotation.y = ry; castle.add(w);
+    const n = Math.round(l / 0.42);
+    for (let k = 0; k < n; k += 2) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.24, 0.42), stoneDark); const off = -l / 2 + (k + 0.5) * l / n; b.position.set(x + (ry ? 0 : off), 1.72, z + (ry ? off : 0)); castle.add(b); }
   });
-  const gate = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.2), glow('#ffcf7a', 1.3)); gate.position.set(0, 0.6, 2.84); castle.add(gate);
+  // Bannières sur le rempart avant
+  [-1.6, 1.6].forEach((x) => { const b = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.9), mat('#a3262b', { side: THREE.DoubleSide })); b.position.set(x, 1.05, 1.82); castle.add(b);
+    const em = new THREE.Mesh(new THREE.CircleGeometry(0.12, 12), gold); em.position.set(x, 1.15, 1.83); castle.add(em); });
+  // Châtelet : porte voûtée, herse, deux tourelles
+  const gh = new THREE.Mesh(rbox(1.6, 2.1, 1.0, 0.04), stone); gh.position.set(0, 1.05, 1.75); castle.add(gh);
+  crenel(2.25, 0.0, 1, castle);
+  const gate = archWin(0.8, 1.2, glow('#ffb35c', 1.8)); gate.position.set(0, 0, 2.26); castle.add(gate);
+  for (let k = -2; k <= 2; k++) { const bar = new THREE.Mesh(new THREE.BoxGeometry(0.035, 1.05, 0.03), timber); bar.position.set(k * 0.15, 0.62, 2.28); castle.add(bar); }
+  [-0.85, 0.85].forEach((x) => { const t = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.32, 2.6, 16), stone); t.position.set(x, 1.3, 1.95); castle.add(t);
+    const c2 = new THREE.Mesh(new THREE.ConeGeometry(0.4, 0.9, 16), slate); c2.position.set(x, 3.05, 1.95); castle.add(c2); });
   shadow(castle); g.add(castle);
+  // Pont-levis au-dessus des douves
+  const draw = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.1, 2.0), mat('#7a5638', { roughness: 0.9 })); draw.position.set(C.x, top + 0.55, C.z + 4.55); draw.rotation.x = 0.42; draw.castShadow = true; g.add(draw);
+  [-0.52, 0.52].forEach((x) => { const ch = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 1.4, 4), stoneDeep); ch.position.set(C.x + x, top + 1.4, C.z + 4.0); ch.rotation.x = -0.6; g.add(ch); });
 
-  // Ruisseau qui file vers le bord, puis cascade
-  const stream = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 7.5), new THREE.MeshStandardMaterial({ color: '#5fb4e6', roughness: 0.1, emissive: '#1d5f8c', emissiveIntensity: 0.4 }));
-  stream.rotation.x = -Math.PI / 2; stream.position.set(5.2, top + 0.02, 4.6); stream.rotation.z = -0.75; g.add(stream);
-  const fallN = 260, fall = new Float32Array(fallN * 3), rnd = mulberry(21);
-  for (let i = 0; i < fallN; i++) { fall[i * 3] = (rnd() - 0.5) * 1; fall[i * 3 + 1] = -rnd() * 12; fall[i * 3 + 2] = (rnd() - 0.5) * 0.4; }
+  /* --- Chemin pavé jusqu'au village --- */
+  const path = new THREE.CatmullRomCurve3([[C.x, 0, C.z + 5.6], [-0.8, 0, 3.6], [-2.6, 0, 5.0], [-4.0, 0, 6.6]].map((p) => new THREE.Vector3(...p)));
+  const paveGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.06, 6);
+  const pavePts = [];
+  for (let k = 0; k < 90; k++) { const p = path.getPointAt(k / 89), tg = path.getTangentAt(k / 89); const n = new THREE.Vector3(-tg.z, 0, tg.x); for (const o of [-0.3, 0.05, 0.38]) pavePts.push(p.clone().addScaledVector(n, o + (rnd() - 0.5) * 0.12)); }
+  const paves = new THREE.InstancedMesh(paveGeo, mat('#ffffff', { roughness: 0.9 }), pavePts.length);
+  { const m = new THREE.Matrix4(), c = new THREE.Color(); pavePts.forEach((p, k) => { m.makeRotationY(rnd() * 3); m.setPosition(p.x, top + 0.04, p.z); paves.setMatrixAt(k, m); paves.setColorAt(k, c.set(['#c9c0ad', '#b6ad99', '#d4ccbb'][k % 3])); }); }
+  paves.receiveShadow = true; g.add(paves);
+
+  /* --- Le village de Brumehaut --- */
+  const cottage = (v) => {
+    const h = new THREE.Group();
+    const wall = mat(['#efe3c8', '#e8d6b4', '#f2e8d4', '#e2cfa8'][v], { roughness: 0.85 });
+    const W = 1.15 + (v % 2) * 0.25, D = 1.0, H = 0.85 + (v === 2 ? 0.45 : 0);
+    const body = new THREE.Mesh(rbox(W, H, D, 0.03, 1), wall); body.position.y = H / 2; h.add(body);
+    // Colombages
+    for (const x of [-W / 2 + 0.04, 0, W / 2 - 0.04]) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.06, H, 0.02), timber); b.position.set(x, H / 2, D / 2 + 0.01); h.add(b); }
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(W, 0.06, 0.02), timber); beam.position.set(0, H * 0.55, D / 2 + 0.01); h.add(beam);
+    const dg = new THREE.Mesh(new THREE.BoxGeometry(0.05, Math.hypot(W / 2, H * 0.45), 0.02), timber); dg.position.set(-W / 4, H * 0.78, D / 2 + 0.012); dg.rotation.z = Math.atan2(W / 2, H * 0.45); h.add(dg);
+    const sh = new THREE.Shape(); sh.moveTo(-W / 2 - 0.15, 0); sh.lineTo(0, 0.85); sh.lineTo(W / 2 + 0.15, 0); sh.lineTo(-W / 2 - 0.15, 0);
+    const rg = new THREE.ExtrudeGeometry(sh, { depth: D + 0.24, bevelEnabled: false }); rg.translate(0, 0, -(D + 0.24) / 2);
+    const roof = new THREE.Mesh(rg, flatMat(['#7b4a2e', '#3f5d7a', '#9b3f2d', '#6b5a3a'][v])); roof.position.y = H; h.add(roof);
+    const ch = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.5, 0.16), stoneDark); ch.position.set(W * 0.25, H + 0.55, -0.15); h.add(ch);
+    const w1 = new THREE.Mesh(new THREE.PlaneGeometry(0.22, 0.24), warm); w1.position.set(-W * 0.28, H * 0.35, D / 2 + 0.02); h.add(w1);
+    const door = new THREE.Mesh(new THREE.PlaneGeometry(0.24, 0.42), mat('#5a3a2a')); door.position.set(W * 0.22, 0.21, D / 2 + 0.02); h.add(door);
+    h.userData.chimney = new THREE.Vector3(W * 0.25, H + 0.85, -0.15);
+    return shadow(h);
+  };
+  const smokes = [];
+  [[-5.4, 4.0, 0.5, 0], [-3.6, 7.7, -0.3, 1], [-6.4, 6.0, 1.1, 2], [-1.5, 6.7, -0.6, 3], [-7.0, 2.4, 1.3, 1]].forEach(([x, z, ry, v]) => {
+    const c = cottage(v); c.position.set(x, top, z); c.rotation.y = ry; g.add(c);
+    const sm = motes(14, new THREE.Vector3(0.25, 1.4, 0.25), '#e8e4dc', 0.13, 0.45, 50 + v);
+    const cp = c.userData.chimney.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), ry); sm.position.set(x + cp.x, top + cp.y, z + cp.z); sm.material.blending = THREE.NormalBlending; sm.material.opacity = 0.5; g.add(sm); smokes.push(sm);
+  });
+  // Puits et étal du marché
+  { const well = new THREE.Group(); well.position.set(-4.3, top, 5.4);
+    well.add(at(new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.34, 0.36, 14), stone), 0, 0.18, 0));
+    [-0.28, 0.28].forEach((x) => well.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.6, 0.05), timber), x, 0.55, 0)));
+    const wr = new THREE.Mesh(new THREE.ConeGeometry(0.42, 0.3, 4), flatMat('#7b4a2e')); wr.position.y = 0.98; wr.rotation.y = Math.PI / 4; well.add(wr);
+    shadow(well); g.add(well);
+    const stall = new THREE.Group(); stall.position.set(-2.2, top, 4.2); stall.rotation.y = -0.4;
+    stall.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.4, 0.45), mat('#8a6440')), 0, 0.2, 0));
+    const awn = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.05, 0.65), mat('#c2362b')); awn.position.set(0, 0.85, 0.05); awn.rotation.x = 0.25; stall.add(awn);
+    [-0.45, 0.45].forEach((x) => stall.add(at(new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.85, 6), timber), x, 0.43, 0.2)));
+    ['#e2453b', '#f2b950', '#7cc35a'].forEach((cc, k) => stall.add(at(new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), mat(cc)), -0.25 + k * 0.25, 0.46, 0)));
+    shadow(stall); g.add(stall); }
+
+  /* --- Moulin à vent --- */
+  const sails = new THREE.Group();
+  { const mill = new THREE.Group(); mill.position.set(1.7, top, 6.5); mill.rotation.y = -0.3;
+    const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.85, 2.4, 8), mat('#efe6d2')); tower.position.y = 1.2; mill.add(tower);
+    const cap = new THREE.Mesh(new THREE.ConeGeometry(0.75, 0.9, 8), flatMat('#7b4a2e')); cap.position.y = 2.85; mill.add(cap);
+    const door = archWin(0.3, 0.5, mat('#5a3a2a')); door.position.set(0, 0, 0.83); door.rotation.x = -0.12; mill.add(door);
+    const win = new THREE.Mesh(new THREE.CircleGeometry(0.1, 12), warm); win.position.set(0, 1.6, 0.68); mill.add(win);
+    sails.position.set(0, 2.55, 0.72); mill.add(sails);
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.2, 10), timber); hub.rotation.x = Math.PI / 2; sails.add(hub);
+    for (let k = 0; k < 4; k++) { const arm = new THREE.Group(); arm.rotation.z = (k / 4) * TAU;
+      arm.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.6, 0.04), timber), 0, 0.8, 0));
+      arm.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.34, 1.2, 0.02), mat('#f4ecd8', { side: THREE.DoubleSide })), 0.2, 0.95, 0.02));
+      sails.add(arm); }
+    shadow(mill); g.add(mill); }
+
+  /* --- Entrée de mine dans la colline --- */
+  { const mine = new THREE.Group(); mine.position.set(6.4, top, -1.2); mine.rotation.y = -0.75;
+    [[0, 0.7, -0.3, 1.5], [0.9, 0.5, -0.1, 1.1], [-0.9, 0.55, -0.2, 1.15], [0.3, 1.4, -0.6, 1.0], [-0.4, 1.2, -0.7, 1.0]].forEach(([x, y, z, r]) => { const rk = new THREE.Mesh(new THREE.DodecahedronGeometry(r, 0), flatMat(['#7d7464', '#8a806d', '#6f6757'][Math.floor(r * 10) % 3])); rk.position.set(x, y, z); mine.add(rk); });
+    const hole = archWin(0.8, 0.95, mat('#120d0a')); hole.position.set(0, 0, 1.02); mine.add(hole);
+    const glowIn = archWin(0.5, 0.6, glow('#ffad4d', 1.4)); glowIn.position.set(0, 0, 1.0); mine.add(glowIn);
+    [[-0.45, 0.5], [0.45, 0.5]].forEach(([x, y]) => mine.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.05, 0.1), timber), x, y, 1.06)));
+    mine.add(at(new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.1, 0.12), timber), 0, 1.02, 1.06));
+    for (let k = 0; k < 7; k++) mine.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.03, 0.08), timber), 0, 0.02, 1.2 + k * 0.25));
+    [-0.2, 0.2].forEach((x) => mine.add(at(new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.03, 1.8), mat('#6b6b6b', { metalness: 0.7, roughness: 0.4 })), x, 0.05, 1.95)));
+    const cart = new THREE.Mesh(rbox(0.5, 0.3, 0.6, 0.03, 1), mat('#5b5149', { metalness: 0.4 })); cart.position.set(0, 0.25, 2.3); mine.add(cart);
+    for (let k = 0; k < 5; k++) mine.add(at(new THREE.Mesh(new THREE.OctahedronGeometry(0.1, 0), glow('#f2b950', 1.6)), -0.15 + (k % 3) * 0.15, 0.45, 2.2 + Math.floor(k / 3) * 0.2));
+    const lantern = new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 8), glow('#ffb35c', 2.5)); lantern.position.set(0.55, 1.0, 1.15); mine.add(lantern);
+    shadow(mine); g.add(mine); }
+
+  /* --- Ruisseau des douves jusqu'à la cascade, petit pont de pierre --- */
+  const stream = new THREE.CatmullRomCurve3([[C.x + 4.4, 0, C.z + 2.2], [3.6, 0, 1.6], [5.2, 0, 5.4], [7.1, 0, 6.9]].map((p) => new THREE.Vector3(...p)));
+  { const pos = [], idx = [], N = 60;
+    for (let k = 0; k <= N; k++) { const u = k / N, p = stream.getPointAt(u), tg = stream.getTangentAt(u), n = new THREE.Vector3(-tg.z, 0, tg.x).multiplyScalar(0.45 + u * 0.15); pos.push(p.x + n.x, top + 0.06, p.z + n.z, p.x - n.x, top + 0.06, p.z - n.z); if (k < N) { const q = k * 2; idx.push(q, q + 1, q + 2, q + 1, q + 3, q + 2); } }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
+    g.add(new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: '#5fb4e6', roughness: 0.08, emissive: '#1d5f8c', emissiveIntensity: 0.45, side: THREE.DoubleSide }))); }
+  const sb = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.16, 8, 16, Math.PI), stoneDeep); sb.scale.y = 0.55; { const p = stream.getPointAt(0.42), tg = stream.getTangentAt(0.42); sb.position.set(p.x, top, p.z); sb.rotation.y = Math.atan2(tg.x, tg.z); } sb.castShadow = true; g.add(sb);
+  const fallN = 260, fall = new Float32Array(fallN * 3);
+  for (let k = 0; k < fallN; k++) { fall[k * 3] = (rnd() - 0.5) * 1; fall[k * 3 + 1] = -rnd() * 12; fall[k * 3 + 2] = (rnd() - 0.5) * 0.4; }
   const fallGeo = new THREE.BufferGeometry(); fallGeo.setAttribute('position', new THREE.BufferAttribute(fall, 3));
   const cascade = new THREE.Points(fallGeo, new THREE.PointsMaterial({ color: '#d6f0ff', size: 0.16, transparent: true, opacity: 0.85, depthWrite: false }));
-  cascade.position.set(7.7, top, 7.3); g.add(cascade);
+  cascade.position.set(7.4, top, 7.15); g.add(cascade);
 
-  // Forêt
-  for (let i = 0; i < 46; i++) {
-    const a = rnd() * TAU, r = 4.6 + rnd() * 4.8;
-    const x = Math.cos(a) * r, z = Math.sin(a) * r;
-    if (x > 3 && z > 2.5) continue; // laisse passer le ruisseau
-    const tr = pine(0.7 + rnd() * 0.7, ['#2f6b45', '#3b7d50', '#285c3c'][i % 3]);
-    tr.position.set(x, top, z); tr.rotation.y = rnd() * 3; g.add(tr);
-  }
-  for (let i = 0; i < 8; i++) {
-    const r = new THREE.Mesh(new THREE.DodecahedronGeometry(0.3 + rnd() * 0.4, 0), flatMat('#8b8577'));
-    const a = rnd() * TAU, d = 3.6 + rnd() * 5;
-    r.position.set(Math.cos(a) * d, top + 0.15, Math.sin(a) * d); r.castShadow = true; g.add(r);
-  }
+  /* --- Forêts sur le pourtour, quelques arbres d'automne --- */
+  const forest = [[-7.6, -2.5], [-8.3, -0.8], [-6.8, -4.6], [-5.2, -6.6], [-7.9, -3.9], [-3.4, -7.9], [3.0, -7.9], [4.6, -6.9], [6.4, -5.6], [8.3, -0.2], [8.7, 1.6], [4.2, 8.0], [8.0, 3.8], [-8.9, 1.0], [-1.2, -8.6], [5.6, -7.6]];
+  forest.forEach(([x, z], k) => {
+    const tr = k % 4 === 3 ? roundTree(0.8 + (k % 3) * 0.12, ['#d9822b', '#e0a93a', '#c25a2b'][k % 3]) : pine(0.75 + ((k * 7) % 5) * 0.08, ['#2f6b45', '#3b7d50', '#285c3c'][k % 3]);
+    tr.position.set(x, top, z); tr.rotation.y = k; g.add(tr);
+  });
 
-  // Cristal d'écho au-dessus du donjon
-  const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(1.1, 0), new THREE.MeshStandardMaterial({ color: '#ffd27a', emissive: '#f2a93b', emissiveIntensity: 2.2, roughness: 0.2, flatShading: true }));
-  crystal.scale.y = 1.8; crystal.position.set(-1.5, 10, -1.5); g.add(crystal);
-  const halo = new THREE.Mesh(new THREE.TorusGeometry(1.9, 0.04, 8, 80), gold);
-  halo.position.copy(crystal.position); g.add(halo);
-  const light = new THREE.PointLight('#ffc46b', 60, 26, 1.6); light.position.copy(crystal.position); g.add(light);
+  /* --- Cristal d'écho au-dessus du donjon --- */
+  const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.85, 0), new THREE.MeshStandardMaterial({ color: '#ffd27a', emissive: '#f2a93b', emissiveIntensity: 2.2, roughness: 0.2, flatShading: true }));
+  crystal.scale.y = 1.8; const CY = top + hill + 8.6; crystal.position.set(C.x, CY, C.z); g.add(crystal);
+  const halo = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.035, 8, 80), gold); halo.position.copy(crystal.position); g.add(halo);
+  const light = new THREE.PointLight('#ffc46b', 50, 24, 1.6); light.position.copy(crystal.position); g.add(light);
+  const ald = makeLabel('Échos d’Aldera', '#f2b950', '#1c1405', 3.0); ald.position.set(C.x, CY + 2.4, C.z); g.add(ald);
 
-  // Îlots en orbite
+  /* --- L'arène RoyalOG sur un îlot flottant --- */
+  const arena = new THREE.Group();
+  { arena.add(island({ r: 2.6, top: '#3d4a3f', soil: '#4a3a2c', rock: '#5a554c', rockDark: '#1e1c18', seed: 77, depth: 1.2 }));
+    const at = 1.05;
+    const plat = new THREE.Mesh(new THREE.CylinderGeometry(2.25, 2.25, 0.08, 40), mat('#2c3a31', { roughness: 0.9 })); plat.position.y = at; arena.add(plat);
+    const laneMat = mat('#c9b48a', { roughness: 0.9 });
+    [[0, 0, 3.6, 0.32, Math.PI / 4], [-1.15, -0.0, 0.32, 2.6, 0], [0, 1.15, 2.6, 0.32, 0]].forEach(([x, z, w, d, r]) => { const l = new THREE.Mesh(new THREE.BoxGeometry(w, 0.04, d), laneMat); l.position.set(x, at + 0.05, z); l.rotation.y = r; arena.add(l); });
+    const top2 = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.04, 2.6), laneMat); top2.position.set(1.15, at + 0.05, 0); arena.add(top2);
+    const bot2 = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.04, 0.32), laneMat); bot2.position.set(0, at + 0.05, -1.15); arena.add(bot2);
+    const nexus = (c, x, z) => { const n = new THREE.Mesh(new THREE.OctahedronGeometry(0.28, 0), glow(c, 2.4)); n.position.set(x, at + 0.5, z); arena.add(n); const b = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.38, 0.2, 8), stone); b.position.set(x, at + 0.12, z); arena.add(b); return n; };
+    arena.userData.nexus = [nexus('#3b82f6', -1.15, 1.15), nexus('#ef4444', 1.15, -1.15)];
+    [[-1.15, 0.2, '#3b82f6'], [-0.3, 1.15, '#3b82f6'], [-0.35, 0.35, '#3b82f6'], [1.15, -0.2, '#ef4444'], [0.3, -1.15, '#ef4444'], [0.35, -0.35, '#ef4444']].forEach(([x, z, c]) => {
+      const tw = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.12, 0.45, 8), stone); tw.position.set(x, at + 0.27, z); arena.add(tw);
+      const tip = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), glow(c, 2)); tip.position.set(x, at + 0.55, z); arena.add(tip); });
+    shadow(arena);
+    arena.position.set(10.5, 5.2, -6.5); arena.rotation.y = 0.6; g.add(arena);
+    const hitDisc = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.6, 2.4, 20), new THREE.MeshBasicMaterial({ visible: false })); hitDisc.position.y = 0.4; hitDisc.userData.project = 'royalog'; arena.add(hitDisc); hits.push(hitDisc);
+    const rl = makeLabel('RoyalOG', '#111827', '#f87171', 2.4); rl.position.set(0, 2.9, 0); arena.add(rl); }
+
+  // Deux îlots décoratifs
   const minis = [];
-  for (let i = 0; i < 4; i++) {
-    const m = new THREE.Group();
-    m.add(island({ r: 1.3 + i * 0.25, top: '#5b9150', soil: '#6b4a33', rock: '#6a6457', rockDark: '#25221c', seed: 40 + i, depth: 1.4 }));
-    const tr = pine(0.6, '#2f6b45'); tr.position.y = 0.95; m.add(tr);
-    shadow(m);
-    const a = (i / 4) * TAU + 0.6;
-    m.position.set(Math.cos(a) * 15, 5 + i * 1.4, Math.sin(a) * 15);
-    g.add(m); minis.push(m);
-  }
+  [[-12, 6.5, -3.5, 1.3], [-9.5, 3.4, 7.5, 1.0]].forEach(([x, y, z, r], k) => {
+    const m = new THREE.Group(); m.add(island({ r, top: '#5b9150', soil: '#6b4a33', rock: '#6a6457', rockDark: '#25221c', seed: 40 + k, depth: 1.4 }));
+    const tr = pine(0.6, '#2f6b45'); tr.position.y = 0.95; m.add(tr); shadow(m); m.position.set(x, y, z); m.userData.y = y; g.add(m); minis.push(m);
+  });
 
   // Navire pirate volant (Pavillon Noir) qui tourne autour de l'île
   const ship = new THREE.Group();
@@ -851,20 +981,32 @@ export function buildGames() {
   }
   ship.scale.setScalar(0.85); g.add(ship);
 
-  const flies = motes(160, new THREE.Vector3(22, 10, 22), '#ffe28a', 0.12, 0.25, 8);
+  // Écrans : les vraies captures, cliquables
+  const s1 = screen(tex('aldera', 0), 4.8, '#1c1405'); s1.position.set(-8.2, 9.2, -5.2); s1.rotation.y = 0.6;
+  const s2 = screen(tex('pavillon', 0), 4.4, '#1c1405'); s2.position.set(6.4, 11.2, -7.6); s2.rotation.y = -0.4;
+  [[s1, 'aldera'], [s2, 'pavillon']].forEach(([sc, id]) => { g.add(sc); sc.userData.hits.forEach((m) => { m.userData.project = id; hits.push(m); }); });
+  ship.traverse((o) => { if (o.isMesh) { o.userData.project = 'pavillon'; hits.push(o); } });
+
+  const flies = motes(120, new THREE.Vector3(20, 9, 20), '#ffe28a', 0.11, 0.25, 8);
   flies.position.y = 1; g.add(flies);
+  const flags = []; castle.traverse((o) => { if (o.userData.flag) flags.push(o); });
 
   ticks.push((t, dt) => {
-    { const a = t * 0.12 + 2.2, R = 13.5; ship.position.set(Math.cos(a) * R, 3.2 + Math.sin(t * 0.9) * 0.35, Math.sin(a) * R);
-      ship.rotation.set(Math.sin(t * 1.1) * 0.06, -a, Math.sin(t * 0.8) * 0.05); }
-    crystal.rotation.y = t * 0.6; crystal.position.y = 10 + Math.sin(t * 1.2) * 0.4;
+    crystal.rotation.y = t * 0.6; crystal.position.y = CY + Math.sin(t * 1.2) * 0.35;
     halo.position.y = crystal.position.y; halo.rotation.x = Math.PI / 2 + Math.sin(t * 0.5) * 0.3; halo.rotation.y = t * 0.3;
-    minis.forEach((m, i) => { m.position.y = 5 + i * 1.4 + Math.sin(t * 0.6 + i) * 0.5; m.rotation.y = t * 0.08 * (i % 2 ? 1 : -1); });
+    sails.rotation.z = -t * 0.8;
+    flags.forEach((f, k) => { f.rotation.y = Math.sin(t * 2.4 + k) * 0.35; });
+    minis.forEach((m, k) => { m.position.y = m.userData.y + Math.sin(t * 0.6 + k) * 0.4; m.rotation.y = t * 0.06 * (k ? 1 : -1); });
+    arena.position.y = 5.2 + Math.sin(t * 0.5) * 0.3;
+    arena.userData.nexus.forEach((n, k) => { n.rotation.y = t * 1.5; n.position.y = 1.55 + Math.sin(t * 2 + k * 3) * 0.06; });
+    { const a = t * 0.12 + 2.2, R = 14.5; ship.position.set(Math.cos(a) * R, 3.2 + Math.sin(t * 0.9) * 0.35, Math.sin(a) * R);
+      ship.rotation.set(Math.sin(t * 1.1) * 0.06, -a, Math.sin(t * 0.8) * 0.05); }
+    s1.position.y = 9.2 + Math.sin(t * 0.7) * 0.25; s2.position.y = 11.2 + Math.sin(t * 0.9 + 1) * 0.25;
     const a = fallGeo.attributes.position;
-    for (let i = 0; i < fallN; i++) { let y = a.getY(i) - dt * (4 + (i % 5)); if (y < -12) y = 0; a.setY(i, y); }
+    for (let k = 0; k < fallN; k++) { let y = a.getY(k) - dt * (4 + (k % 5)); if (y < -12) y = 0; a.setY(k, y); }
     a.needsUpdate = true;
-    flies.userData.tick(t, dt);
+    flies.userData.tick(t, dt); smokes.forEach((sm) => sm.userData.tick(t, dt));
   });
 
-  return { group: g, ticks, hits: [], focus: new THREE.Vector3(0, 4.5, 0) };
+  return { group: g, ticks, hits, focus: new THREE.Vector3(0, 4.5, 0) };
 }
