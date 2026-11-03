@@ -117,7 +117,7 @@ export const projects = {
     ],
     stack: ['JavaScript', 'Three.js', 'Post-traitement (lueur, étalonnage)', 'FR / EN', 'Hors ligne'],
     highlights: ['Environ 11 600 lignes de JavaScript', 'Base évolutive sur 5 niveaux', 'Qualité graphique adaptative'],
-    images: [c('aldera', '02-foret'), c('aldera', '01-titre'), c('aldera', '03-mines'), c('aldera', '04-lisiere'), c('aldera', '05-village')],
+    images: [c('aldera', 'v2-01-refuge'), c('aldera', 'v2-02-foret'), c('aldera', 'v2-03-pierre-memoire'), c('aldera', 'v2-04-source'), c('aldera', 'v2-05-ruines'), c('aldera', 'v2-06-clairiere'), c('aldera', '01-titre')],
   },
   pavillon: {
     name: 'Pavillon Noir',
