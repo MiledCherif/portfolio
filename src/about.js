@@ -124,15 +124,13 @@ export function mountAbout(contact) {
     const btn = form.querySelector('[type=submit]');
     btn.disabled = true; btn.textContent = t('Envoi…', 'Sending…'); err.textContent = '';
     try {
-      const r = await fetch(`https://formsubmit.co/ajax/${EMAIL}`, {
-        method: 'POST',
-        // FormData + en-tête Accept seulement : requête « simple », sans pré-vérification CORS
-        headers: { Accept: 'application/json' },
-        body: Object.entries({ name: d.name, email: d.email, _replyto: d.email, _subject: subject, objet: d.topic, message: d.message, _template: 'table', _captcha: 'false' })
-          .reduce((f, [k, v]) => (f.append(k, v), f), new FormData()),
-      });
+      // Web3Forms : la clé d'accès est publique par conception (elle ne permet que d'envoyer vers mod.cherif@gmail.com)
+      const f = new FormData();
+      Object.entries({ access_key: '62bcbbb4-8529-4de7-9a67-e7334089abc3', subject, from_name: `Portfolio · ${d.name}`, replyto: d.email,
+        name: d.name, email: d.email, objet: d.topic, message: d.message, botcheck: '' }).forEach(([k, v]) => f.append(k, v));
+      const r = await fetch('https://api.web3forms.com/submit', { method: 'POST', headers: { Accept: 'application/json' }, body: f });
       const j = await r.json().catch(() => ({}));
-      if (!r.ok || j.success === 'false' || j.success === false) throw new Error(j.message || r.status);
+      if (!r.ok || !j.success) throw new Error(j.message || r.status);
       form.reset(); form.hidden = true; done.hidden = false;
     } catch (ex) {
       console.warn('Formulaire :', ex?.message);
