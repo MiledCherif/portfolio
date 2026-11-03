@@ -126,8 +126,10 @@ export function mountAbout(contact) {
     try {
       const r = await fetch(`https://formsubmit.co/ajax/${EMAIL}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ name: d.name, email: d.email, _replyto: d.email, _subject: subject, objet: d.topic, message: d.message, _template: 'table', _captcha: 'false' }),
+        // FormData + en-tête Accept seulement : requête « simple », sans pré-vérification CORS
+        headers: { Accept: 'application/json' },
+        body: Object.entries({ name: d.name, email: d.email, _replyto: d.email, _subject: subject, objet: d.topic, message: d.message, _template: 'table', _captcha: 'false' })
+          .reduce((f, [k, v]) => (f.append(k, v), f), new FormData()),
       });
       const j = await r.json().catch(() => ({}));
       if (!r.ok || j.success === 'false' || j.success === false) throw new Error(j.message || r.status);
