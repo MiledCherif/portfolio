@@ -60,7 +60,7 @@ export function mountAbout(contact) {
         'Programmer analyst in a hospital environment, I build Django web applications that handle sensitive data: access, logging, compliance and deployment. My favourite ground: where software development, networking and cybersecurity meet.')}</p>
       <ul class="about-facts">
         <li><b>${t('Basé à', 'Based in')}</b>Gatineau, QC</li>
-        <li><b>${t('Langues', 'Languages')}</b>${t('Français, anglais, arabe', 'French, English, Arabic')}</li>
+        <li><b>${t('Langues', 'Languages')}</b>${t('Anglais, français, arabe', 'English, French, Arabic')}</li>
         <li><b>${t('Formation', 'Education')}</b>${t('Réseaux + génie logiciel', 'Networks + software engineering')}</li>
       </ul>
       <a class="button" href="${cvUrl}" download>${t('Télécharger le CV', 'Download the resume')} <span aria-hidden="true">↓</span></a>
