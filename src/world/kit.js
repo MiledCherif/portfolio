@@ -167,7 +167,7 @@ export function motes(count, box, color, size, rise, seed = 3) {
     const a = geo.attributes.position;
     for (let i = 0; i < count; i++) {
       let y = a.getY(i) + rise * dt;
-      if (y > box.y) y = 0;
+      if (y > box.y) y = 0; else if (y < 0) y = box.y;
       a.setY(i, y);
       a.setX(i, a.getX(i) + Math.sin(t * 0.7 + i) * 0.002);
     }

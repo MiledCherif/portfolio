@@ -162,7 +162,7 @@ const contact = document.getElementById('contact');
 const captions = {
   cyber: t('L’hôpital sous son dôme : chaque fournisseur passe le contrôle avant d’entrer.', 'The hospital under its dome: every vendor goes through the checkpoint before entering.'),
   saas: t('Un quartier d’affaires : le siège, ses équipes, et les ventes de la semaine en direct.', 'A business district: the headquarters, its teams, and this week’s sales live.'),
-  web: t('Trois villes, une rivière, un pont : le camion fait sa tournée.', 'Three towns, a river, a bridge: the truck makes its rounds.'),
+  web: t('Trois quartiers, trois projets : le dépôt YourMove, la pagode NinjaWatch et le radar StarryOne.', 'Three districts, three projects: the YourMove depot, the NinjaWatch pagoda and the StarryOne radar.'),
   games: t('Le château, la cascade, le cristal d’écho et le navire pirate.', 'The castle, the waterfall, the echo crystal and the pirate ship.'),
 };
 const triage = `
