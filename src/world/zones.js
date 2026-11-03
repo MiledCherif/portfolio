@@ -504,18 +504,20 @@ export function buildWeb(tex) {
   g.add(banks, water);
 
   // Route en boucle qui passe par le pont
-  const road = new THREE.CatmullRomCurve3([[-6.5, 0, -4], [0, 0, -6.5], [6.5, 0, -4.5], [7.5, 0, 0.6], [5, 0, 5.5], [-1, 0, 7.4], [-6.5, 0, 5.2], [-8, 0, 0.8]].map((p) => new THREE.Vector3(...p)), true);
+  const road = new THREE.CatmullRomCurve3(Array.from({ length: 48 }, (_, k) => { const a = (k / 48) * TAU; return new THREE.Vector3(Math.cos(a) * 7.6, 0, 0.6 + Math.sin(a) * 6.1); }), true, 'centripetal');
   g.add(Object.assign(new THREE.Mesh(ribbon(road, 1.05, top + 0.13, 240), mat('#45484f', { side: THREE.DoubleSide })), { receiveShadow: true }));
-  // Pont là où la route croise la rivière (côté est)
-  const bridge = new THREE.Group();
-  const deck = new THREE.Mesh(rbox(1.5, 0.2, 4.2, 0.05), mat('#d8d2c6'));
-  deck.position.y = 0.45;
-  bridge.add(deck);
-  for (const x of [-0.72, 0.72]) {
-    const arch = new THREE.Mesh(new THREE.TorusGeometry(1.8, 0.07, 8, 32, Math.PI), mat('#b7462f'));
-    arch.rotation.y = Math.PI / 2; arch.position.set(x, 0.5, 0); bridge.add(arch);
-  }
-  bridge.position.set(7.35, top, 0.6); bridge.rotation.y = 0.12; shadow(bridge); g.add(bridge);
+  // Deux ponts là où la route croise la rivière
+  const bridges = [new THREE.Vector3(7.6, 0, 0.6), new THREE.Vector3(-7.6, 0, 0.6)];
+  bridges.forEach((bp) => {
+    const bridge = new THREE.Group();
+    const deck = new THREE.Mesh(rbox(1.4, 0.16, 4.4, 0.05), mat('#e7e2d8')); deck.position.y = 0.3; bridge.add(deck);
+    for (const x of [-0.68, 0.68]) {
+      const arch = new THREE.Mesh(new THREE.TorusGeometry(1.7, 0.06, 8, 40, Math.PI), mat('#2563eb', { roughness: 0.4 }));
+      arch.rotation.y = Math.PI / 2; arch.position.set(x, 0.32, 0); bridge.add(arch);
+      for (let k = -3; k <= 3; k++) { const z = k * 0.42, h = Math.sqrt(Math.max(0, 1.7 ** 2 - z * z)); const cable = new THREE.Mesh(new THREE.BoxGeometry(0.02, h, 0.02), mat('#cbd5e1')); cable.position.set(x, 0.32 + h / 2, z); bridge.add(cable); }
+    }
+    bridge.position.set(bp.x, top, bp.z); shadow(bridge); g.add(bridge);
+  });
 
   const rnd = mulberry(4);
   const riverZ = (x) => riverPath.getPoint(THREE.MathUtils.clamp((x + 10.2) / 20.3, 0, 1)).z;
@@ -523,8 +525,8 @@ export function buildWeb(tex) {
   const roadT = (x, z) => { let best = 0, bd = 1e9; for (let k = 0; k < 200; k++) { const p = road.getPointAt(k / 200), d = (p.x - x) ** 2 + (p.z - z) ** 2; if (d < bd) { bd = d; best = k / 200; } } return [best, Math.sqrt(bd)]; };
 
   // Les trois quartiers, un par projet
-  const YM = new THREE.Vector3(-4.6, 0, -2.4), NW = new THREE.Vector3(1.2, 0, 4.75), SO = new THREE.Vector3(4.4, 0, -2.7), PARK = new THREE.Vector3(-0.6, 0, -3.1);
-  const blocked = [[YM, 2.6], [NW, 2.0], [SO, 2.3], [PARK, 1.7]];
+  const YM = new THREE.Vector3(-4.6, 0, -2.4), NW = new THREE.Vector3(1.2, 0, 4.55), SO = new THREE.Vector3(4.4, 0, -2.7);
+  const blocked = [[YM, 2.6], [NW, 2.0], [SO, 2.3]];
   const free = (x, z, pad = 0) => !blocked.some(([c, r]) => Math.hypot(x - c.x, z - c.z) < r + pad) && !nearRiver(x, z) && Math.hypot(x, z) < 9.8;
 
   const label = (text, bg, ink, w = 2.6) => {
@@ -581,7 +583,7 @@ export function buildWeb(tex) {
   const lanterns = [];
   {
     const d = new THREE.Group(); d.position.set(NW.x, top, NW.z);
-    const plat = new THREE.Mesh(rbox(2.6, 0.22, 2.6, 0.06), mat('#9b8f80', { roughness: 0.9 })); plat.position.y = 0.11; d.add(plat);
+    const plat = new THREE.Mesh(rbox(2.3, 0.22, 2.3, 0.06), mat('#9b8f80', { roughness: 0.9 })); plat.position.y = 0.11; d.add(plat);
     const red = mat('#c2362b', { roughness: 0.6 }), roofM = mat('#2b2f3a', { roughness: 0.5 }), wood = mat('#efe2c8', { roughness: 0.7 });
     let y = 0.22;
     [[1.5, 0.7], [1.2, 0.6], [0.92, 0.55]].forEach(([w, h], k) => {
@@ -596,7 +598,7 @@ export function buildWeb(tex) {
     const spire = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.05, 0.7, 8), mat('#d4a73a', { metalness: 0.7, roughness: 0.3 })); spire.position.y = y + 0.45; d.add(spire);
     shadow(d); g.add(d);
     // Torii au-dessus de la route
-    const torii = new THREE.Group(); torii.position.set(NW.x, top, NW.z + 1.5);
+    const torii = new THREE.Group(); torii.position.set(NW.x, top, NW.z + 1.35);
     for (const x of [-0.72, 0.72]) { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 1.7, 12), red); c.position.set(x, 0.85, 0); torii.add(c); }
     const kasagi = new THREE.Mesh(rbox(2.1, 0.13, 0.2, 0.04, 1), mat('#1f2329')); kasagi.position.y = 1.78; torii.add(kasagi);
     const shimaki = new THREE.Mesh(rbox(1.9, 0.11, 0.17, 0.03, 1), red); shimaki.position.y = 1.64; torii.add(shimaki);
@@ -612,12 +614,12 @@ export function buildWeb(tex) {
       });
       return shadow(t);
     };
-    [[-1.3, 3.9], [3.2, 4.0], [-0.6, 5.7], [2.9, 5.5], [-1.9, 5.0]].forEach(([x, z], k) => { const t = sakura(0.8 + (k % 2) * 0.2); t.position.set(x, top, z); t.rotation.y = k; g.add(t); });
+    [[-1.0, 4.4], [3.3, 4.3], [-1.6, 5.4], [3.1, 5.5]].forEach(([x, z], k) => { const t = sakura(0.8 + (k % 2) * 0.2); t.position.set(x, top, z); t.rotation.y = k; g.add(t); });
     // Pétales qui tombent
     const petals = motes(70, new THREE.Vector3(5, 3, 3), '#ffc4dc', 0.09, -0.35, 12);
     petals.position.set(NW.x, top + 0.2, NW.z); g.add(petals); ticks.push((t, dt) => petals.userData.tick(t, dt));
     // Lanternes
-    [[-0.1, 3.8], [2.5, 3.8], [-0.4, 6.0], [2.8, 6.3]].forEach(([x, z]) => {
+    [[0.1, 5.75], [2.3, 5.75]].forEach(([x, z]) => {
       const post = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.55, 6), mat('#6b6158')); post.position.set(x, top + 0.28, z);
       const lamp = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.22, 10), glow('#ffb15c', 2)); lamp.position.set(x, top + 0.66, z);
       g.add(post, lamp); lanterns.push(lamp);
@@ -648,52 +650,60 @@ export function buildWeb(tex) {
     const lb = label('StarryOne', '#0f172a', '#7dd3fc'); lb.position.set(SO.x, top + 6.0, SO.z); g.add(lb);
   }
 
-  /* --- Parc central : fontaine et bancs --- */
-  const jets = [];
-  {
-    const d = new THREE.Group(); d.position.set(PARK.x, top, PARK.z);
-    const grass = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 0.05, 40), mat('#6f9f57')); grass.position.y = 0.03; d.add(grass);
-    const basin = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.8, 0.22, 32), mat('#d6d3cc')); basin.position.y = 0.12; d.add(basin);
-    const pool = new THREE.Mesh(new THREE.CylinderGeometry(0.66, 0.66, 0.05, 32), new THREE.MeshStandardMaterial({ color: '#5fb4e6', roughness: 0.05, emissive: '#1d5f8c', emissiveIntensity: 0.4 })); pool.position.y = 0.22; d.add(pool);
-    const col = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 0.5, 12), mat('#d6d3cc')); col.position.y = 0.45; d.add(col);
-    for (let k = 0; k < 24; k++) { const j = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 6), new THREE.MeshBasicMaterial({ color: '#d6f0ff', transparent: true, opacity: 0.85 })); d.add(j); jets.push(j); }
-    [[1.15, 0.6], [-1.15, -0.5], [0.2, -1.2]].forEach(([x, z]) => { const b = new THREE.Mesh(rbox(0.6, 0.1, 0.22, 0.03, 1), mat('#8a6a4f')); b.position.set(x, 0.22, z); b.lookAt(0, 0.22, 0); d.add(b); });
-    shadow(d); g.add(d);
+  // Quelques maisons modernes, toutes différentes (le quartier où l'on déménage)
+  const modernHouse = (v) => {
+    const h = new THREE.Group();
+    const white = mat('#f5f3ee', { roughness: 0.6 }), dark = mat('#2b2f36', { roughness: 0.5 }), wood = mat('#b07a4f', { roughness: 0.8 }), win = glow('#ffd9a0', 0.9);
+    if (v === 0) { // cube à toit plat, étage décalé, bardage bois
+      const a = new THREE.Mesh(rbox(1.5, 0.75, 1.2, 0.03, 1), white); a.position.y = 0.375; h.add(a);
+      const b2 = new THREE.Mesh(rbox(1.1, 0.65, 1.0, 0.03, 1), wood); b2.position.set(0.25, 1.07, -0.1); h.add(b2);
+      const w1 = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.42), win); w1.position.set(-0.2, 0.38, 0.605); h.add(w1);
+      const w2 = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.34), win); w2.position.set(0.3, 1.1, 0.405); h.add(w2);
+    } else if (v === 1) { // pignon blanc, toit sombre, grande baie
+      const a = new THREE.Mesh(rbox(1.1, 0.9, 1.3, 0.03, 1), white); a.position.y = 0.45; h.add(a);
+      const sh = new THREE.Shape(); sh.moveTo(-0.65, 0); sh.lineTo(0, 0.62); sh.lineTo(0.65, 0); sh.lineTo(-0.65, 0);
+      const rg = new THREE.ExtrudeGeometry(sh, { depth: 1.42, bevelEnabled: false }); rg.translate(0, 0, -0.71);
+      const r = new THREE.Mesh(rg, dark); r.position.y = 0.9; h.add(r);
+      const w1 = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.62), win); w1.position.set(0, 0.42, 0.655); h.add(w1);
+      const ch = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.4, 0.14), dark); ch.position.set(0.3, 1.35, -0.3); h.add(ch);
+    } else if (v === 2) { // A-frame noir
+      const sh = new THREE.Shape(); sh.moveTo(-0.7, 0); sh.lineTo(0, 1.35); sh.lineTo(0.7, 0); sh.lineTo(-0.7, 0);
+      const rg = new THREE.ExtrudeGeometry(sh, { depth: 1.3, bevelEnabled: false }); rg.translate(0, 0, -0.65);
+      h.add(new THREE.Mesh(rg, dark));
+      const tri = new THREE.Shape(); tri.moveTo(-0.5, 0.05); tri.lineTo(0, 1.0); tri.lineTo(0.5, 0.05); tri.lineTo(-0.5, 0.05);
+      const w1 = new THREE.Mesh(new THREE.ShapeGeometry(tri), win); w1.position.z = 0.66; h.add(w1);
+      const deck = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.06, 0.5), wood); deck.position.set(0, 0.03, 0.9); h.add(deck);
+    } else { // maison de ville à deux étages, toit monopente
+      const a = new THREE.Mesh(rbox(1.0, 1.5, 1.1, 0.03, 1), mat('#dfe7ef', { roughness: 0.6 })); a.position.y = 0.75; h.add(a);
+      const r = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.08, 1.25), dark); r.position.y = 1.62; r.rotation.x = 0.18; h.add(r);
+      [0.45, 1.1].forEach((y) => { const w1 = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 0.36), win); w1.position.set(0, y, 0.555); h.add(w1); });
+    }
+    return shadow(h);
+  };
+  const houseSpots = [[-1.9, -4.0, 0, 0.2], [-7.3, -6.2, 1, 0.6], [-9.0, -2.9, 2, 1.1], [-2.6, 9.0, 3, -0.2], [-5.7, 6.2, 1, 0.5], [5.9, 6.6, 2, -0.6], [9.3, -2.6, 0, -1.2], [1.9, -7.4, 3, 0.1], [-4.2, -7.4, 2, 0.3]];
+  for (const [x, z, v, ry] of houseSpots) {
+    if (nearRiver(x, z, 2.1) || roadT(x, z)[1] < 1.25 || Math.hypot(x, z) > 10.2 || blocked.some(([c, r]) => Math.hypot(x - c.x, z - c.z) < r)) continue;
+    const hs = modernHouse(v); hs.position.set(x, top, z); hs.rotation.y = ry; g.add(hs);
+    const yard = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.15, 0.04, 28), mat('#8fbf73', { roughness: 0.95 })); yard.position.set(x, top + 0.01, z); yard.receiveShadow = true; g.add(yard);
+    blocked.push([new THREE.Vector3(x, 0, z), 1.3]);
   }
-
-  // Quartiers résidentiels le long de la route (hors des trois sites)
-  const walls = ['#efe6d8', '#e3d3bd', '#f4efe6', '#d9c6ad', '#e9dccb'];
-  const roofs = ['#a4513a', '#5d6b7a', '#8a3f2f', '#3f5566'];
-  for (let i = 0; i < 30; i++) {
-    const u = i / 30 + 0.013, p = road.getPointAt(u), tg = road.getTangentAt(u);
-    const side = i % 2 ? 1 : -1;
-    const pos = p.clone().add(new THREE.Vector3(-tg.z, 0, tg.x).normalize().multiplyScalar(1.55 * side));
-    if (!free(pos.x, pos.z, 0.5) || (pos.z > 4.6 && Math.abs(pos.x) < 4.5)) continue;
-    const hs = house({ w: 1.1 + rnd() * 0.5, d: 1.05, h: 0.9 + rnd() * 0.7, wall: walls[i % 5], roof: roofs[i % 4] });
-    hs.position.set(pos.x, top, pos.z); hs.lookAt(p.x, top, p.z); hs.scale.setScalar(0.8); g.add(hs);
-    blocked.push([pos.clone(), 0.9]);
-  }
-  for (let i = 0; i < 60; i++) {
-    const a = rnd() * TAU, r = 1.5 + rnd() * 8.6, x = Math.cos(a) * r, z = Math.sin(a) * r;
-    if (!free(x, z, 0.3) || roadT(x, z)[1] < 0.9) continue;
-    const tr = i % 3 ? roundTree(0.6 + rnd() * 0.45, ['#5f9448', '#4c7f3b', '#77a35a'][i % 3]) : pine(0.55 + rnd() * 0.35, '#3e7550');
-    tr.position.set(x, top, z); tr.rotation.y = rnd() * 3; g.add(tr);
-  }
-  // Massifs de fleurs sur le devant
-  { const cols = ['#f472b6', '#facc15', '#fb7185', '#a78bfa', '#f97316'];
-    for (let k = 0; k < 70; k++) { const a = rnd() * TAU, r = 7.6 + rnd() * 2.2, x = Math.cos(a) * r, z = Math.sin(a) * r;
-      if (z < 2 || !free(x, z) || roadT(x, z)[1] < 0.8) continue;
-      const f = new THREE.Mesh(new THREE.IcosahedronGeometry(0.12 + rnd() * 0.08, 0), flatMat(cols[k % 5])); f.position.set(x, top + 0.1, z); g.add(f); } }
-  // Lampadaires le long de la route
+  // Arbres en bosquets, sur le pourtour
+  [[-8.6, 3.6], [-9.4, 4.4], [-8.1, 5.0], [9.2, 3.8], [8.6, 4.8], [9.8, -0.9], [-0.5, -8.4], [0.6, -8.9], [4.8, -8.2], [-6.8, 8.0], [3.4, 8.6], [-3.2, -1.0], [2.4, -1.2], [-9.6, -0.6]].forEach(([x, z], k) => {
+    if (nearRiver(x, z, 2.0) || roadT(x, z)[1] < 0.9 || blocked.some(([c, r]) => Math.hypot(x - c.x, z - c.z) < r)) return;
+    const tr = k % 3 === 2 ? pine(0.75 + (k % 2) * 0.2, '#3e7550') : roundTree(0.8 + (k % 3) * 0.12, ['#5f9448', '#4c7f3b', '#77a35a'][k % 3]);
+    tr.position.set(x, top, z); tr.rotation.y = k; g.add(tr);
+  });
+  // Quelques lampadaires
   const lampMat = glow('#ffe3a8', 2.2), poleMat = mat('#3a3f47');
-  for (let k = 0; k < 26; k++) {
-    const u = k / 26, p = road.getPointAt(u), tg = road.getTangentAt(u);
-    const q = p.clone().add(new THREE.Vector3(-tg.z, 0, tg.x).normalize().multiplyScalar(0.72 * (k % 2 ? 1 : -1)));
-    if (nearRiver(q.x, q.z, 1.9)) continue;
+  for (let k = 0; k < 12; k++) {
+    const u = (k + 0.5) / 12, p = road.getPointAt(u), tg = road.getTangentAt(u);
+    const q = p.clone().add(new THREE.Vector3(-tg.z, 0, tg.x).normalize().multiplyScalar(-0.75));
+    if (nearRiver(q.x, q.z, 2.0)) continue;
     const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.03, 0.85, 6), poleMat); pole.position.set(q.x, top + 0.42, q.z);
     const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), lampMat); bulb.position.set(q.x, top + 0.88, q.z);
     g.add(pole, bulb);
   }
+
   // Voilier sur la rivière
   const boat = new THREE.Group();
   { const hull = new THREE.Mesh(rbox(0.9, 0.2, 0.35, 0.08, 1), mat('#f8fafc')); hull.position.y = 0.1; boat.add(hull);
@@ -718,10 +728,9 @@ export function buildWeb(tex) {
   ticks.push((t) => {
     const u = (t * 0.035) % 1;
     const p = road.getPointAt(u);
-    const nearBridge = Math.max(0, 1 - p.distanceTo(new THREE.Vector3(7.35, 0, 0.6)) / 2.4);
-    truck.position.set(p.x, top + 0.13 + nearBridge * 0.45, p.z);
-    look.copy(road.getPointAt((u + 0.01) % 1)); look.y = truck.position.y;
-    truck.lookAt(look);
+    const nearBridge = Math.max(...bridges.map((bp) => Math.max(0, 1 - Math.hypot(p.x - bp.x, p.z - bp.z) / 2.2)));
+    truck.position.set(p.x, top + 0.13 + Math.sin(nearBridge * Math.PI / 2) * 0.25, p.z);
+    const tg = road.getTangentAt(u); truck.rotation.y = Math.atan2(tg.x, tg.z);
     wheels.forEach((w) => { w.rotation.x = t * 6; });
     s1.position.y = 8.2 + Math.sin(t * 0.7) * 0.25;
     s2.position.y = 9.6 + Math.sin(t * 0.9 + 1) * 0.25;
@@ -731,7 +740,6 @@ export function buildWeb(tex) {
     lanterns.forEach((l, k) => { l.material.emissiveIntensity = 1.8 + Math.sin(t * 2.3 + k * 1.7) * 0.4; });
     const bu = 0.15 + 0.7 * (0.5 + 0.5 * Math.sin(t * 0.05)), bp = riverPath.getPointAt(bu), bt = riverPath.getTangentAt(bu);
     boat.position.set(bp.x, top + 0.1, bp.z); boat.rotation.y = Math.atan2(-bt.z, bt.x) + (Math.cos(t * 0.05) < 0 ? Math.PI : 0);
-    jets.forEach((j, k) => { const a = (k / jets.length) * TAU, ph = (t * 0.9 + k * 0.37) % 1; j.position.set(Math.cos(a) * ph * 0.55, 0.7 + ph * 0.6 - ph * ph * 1.1, Math.sin(a) * ph * 0.55); });
   });
 
   return { group: g, ticks, hits, focus: new THREE.Vector3(0, 3.5, 0) };
