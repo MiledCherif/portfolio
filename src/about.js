@@ -132,10 +132,11 @@ export function mountAbout(contact) {
       const j = await r.json().catch(() => ({}));
       if (!r.ok || j.success === 'false' || j.success === false) throw new Error(j.message || r.status);
       form.reset(); form.hidden = true; done.hidden = false;
-    } catch {
+    } catch (ex) {
+      console.warn('Formulaire :', ex?.message);
       // Plan B : le logiciel de courriel du visiteur, déjà rempli
       location.href = `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`${d.message}\n\n${d.name} · ${d.email}`)}`;
-      err.textContent = t('L’envoi direct a échoué : votre logiciel de courriel s’ouvre avec le message prêt.', 'Direct sending failed: your email app opens with the message ready.');
+      err.textContent = t('L’envoi direct a échoué : votre logiciel de courriel s’ouvre avec le message prêt.', 'Direct sending failed: your email app opens with the message ready.') + (ex?.message ? ` (${String(ex.message).slice(0, 160)})` : '');
     } finally {
       btn.disabled = false; btn.textContent = t('Envoyer', 'Send');
     }
