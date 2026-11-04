@@ -19,7 +19,7 @@ export function switchLang() {
 const staticEn = {
   title: 'Miled Cherif — Developer and cybersecurity analyst',
   description: 'Miled Cherif builds security platforms for Hôpital Montfort, business SaaS products, websites and games.',
-  'hero-text': 'Developer and programmer analyst in cybersecurity at Hôpital Montfort. I build security platforms, business SaaS products, websites and games.',
+  'hero-text': 'Programmer analyst at Hôpital Montfort, I build secure, useful and thoughtfully designed software. Each island in this world shows a facet of my work, from cybersecurity to creativity.',
   'hero-cta': 'Visit the four worlds',
   'contact-title': 'A project to build or to secure?',
   'contact-text': 'Business platform, risk analysis, website or game: I reply fast.',
