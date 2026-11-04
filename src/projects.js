@@ -143,8 +143,8 @@ export const projects = {
     ],
     stack: ['Roblox Studio', 'Luau', 'Rojo', 'Architecture client / serveur'],
     highlights: ['Environ 16 000 lignes de Luau', 'IA de bots et mode spectateur', 'Draft, kits de héros et économie d’or'],
-    images: [c('royalog', '01-carte'), c('royalog', '02-draft')],
-    note: 'Visuels d’illustration : schéma de la carte et écran de draft.',
+    images: [c('royalog', '03-combat'), c('royalog', '04-draft-heros'), c('royalog', '01-carte')],
+    note: 'Visuels d’illustration recréés en 3D (combat, draft, carte) avec des héros originaux.',
   },
 };
 

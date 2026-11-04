@@ -86,6 +86,6 @@ export const projectsEn = {
     ],
     stack: ['Roblox Studio', 'Luau', 'Rojo', 'Client / server architecture'],
     highlights: ['About 16,000 lines of Luau', 'Bot AI and spectator mode', 'Draft, hero kits and gold economy'],
-    note: 'Illustrative visuals: map diagram and draft screen.',
+    note: 'Illustrative visuals recreated in 3D (combat, draft, map) with original heroes.',
   },
 };
