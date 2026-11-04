@@ -51,7 +51,7 @@ export const projects = {
     ],
     stack: ['Python', 'Django', 'Chart.js', 'WeasyPrint (rapports PDF)', 'i18n FR / EN', 'IIS'],
     highlights: ['Workflow multi-rôles : owner, analystes PIA/TRA, fournisseurs', 'Rapports PDF générés automatiquement', 'Synchronisation de scores de sécurité externes'],
-    images: [c('riskeo', '01-dashboard-owner'), c('riskeo', '03-fiche-fournisseur'), c('riskeo', '00-connexion'), c('riskeo', '02-fournisseurs'), c('riskeo', '04-inventaire'), c('riskeo', '05-calendrier')],
+    images: [c('riskeo', '01-dashboard-owner'), c('riskeo', '03-fiche-fournisseur'), c('riskeo', '08-questionnaire'), c('riskeo', '09-resultats'), c('riskeo', '00-connexion'), c('riskeo', '02-fournisseurs'), c('riskeo', '04-inventaire'), c('riskeo', '05-calendrier')],
   },
   tracktarget: {
     name: 'TrackTarget',
