@@ -198,8 +198,14 @@ main { position: relative; z-index: 10; }
 .p-gallery { margin: 64px auto 0; max-width: 980px; }
 .p-main { border-radius: 10px; overflow: hidden; box-shadow: 0 30px 60px -30px rgb(0 0 0 / .45); background: color-mix(in srgb, var(--p-ink) 6%, var(--p-ground)); }
 .p-main img { display: block; width: 100%; height: auto; }
-.p-thumbs { display: flex; gap: 10px; margin-top: 10px; overflow-x: auto; padding-bottom: 4px; }
-.p-thumbs button { flex: 0 0 168px; aspect-ratio: 16/10; background: center/cover no-repeat; opacity: .5; transition: opacity .3s; }
+.p-thumbs { display: grid; grid-template-columns: repeat(var(--n, 6), minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
+.p-thumbs button { aspect-ratio: 16/10; background: center/cover no-repeat; opacity: .5; transition: opacity .3s; border-radius: 4px; }
+.p-main { position: relative; }
+.p-nav { position: absolute; top: 50%; translate: 0 -50%; width: 46px; height: 46px; border-radius: 99px; display: grid; place-items: center; background: rgb(12 13 15 / .62); color: #fff; font-size: 22px; line-height: 1; opacity: 0; transition: opacity .25s, background .25s; backdrop-filter: blur(6px); }
+.p-nav.prev { left: 14px; } .p-nav.next { right: 14px; }
+.p-main:hover .p-nav, .p-nav:focus-visible { opacity: 1; }
+.p-nav:hover { background: rgb(12 13 15 / .85); }
+.p-count { position: absolute; right: 14px; bottom: 12px; padding: 4px 10px; border-radius: 99px; background: rgb(12 13 15 / .62); color: #fff; font-size: 13px; font-weight: 500; }
 .p-thumbs button.on, .p-thumbs button:hover { opacity: 1; }
 .p-cols { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 64px; margin: 120px auto 0; max-width: 980px; }
 .p-cols p { margin-bottom: 18px; max-width: 60ch; font-size: 18px; }
@@ -224,7 +230,8 @@ main { position: relative; z-index: 10; }
   .p-sub span { font-size: 15px; }
   .p-gallery { margin-top: 32px; }
   .p-main { border-radius: 8px; }
-  .p-thumbs button { flex-basis: 92px; }
+  .p-thumbs { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .p-nav { opacity: 1; width: 38px; height: 38px; font-size: 18px; }
   .p-cols p, .p-cols li { font-size: 16px; }
   .contact h2 { font-size: 38px; }
   .contact p { margin: 16px 0 22px; font-size: 16.5px; }

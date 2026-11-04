@@ -301,8 +301,8 @@ function openProject(id, x = innerWidth / 2, y = innerHeight / 2) {
   inner.innerHTML = `
     <div class="p-head-wrap"><h2 class="p-title" id="project-title">${p.name}</h2>
     <div class="p-sub"><p>${p.summary}</p><span>${z.title}${p.year ? ` · ${p.year}` : ''}</span></div></div>
-    ${p.images.length ? `<div class="p-gallery"><div class="p-main"><img src="${p.images[0]}" alt="${t('Capture de', 'Screenshot of')} ${p.name}" width="2160" height="1350"></div>
-      <div class="p-thumbs">${p.images.map((src, i) => `<button class="${i ? '' : 'on'}" data-src="${src}" style="background-image:url('${src}')" aria-label="${t('Capture', 'Screenshot')} ${i + 1} ${t('sur', 'of')} ${p.images.length}"></button>`).join('')}</div></div>`
+    ${p.images.length ? `<div class="p-gallery"><div class="p-main"><img src="${p.images[0]}" alt="${t('Capture de', 'Screenshot of')} ${p.name}" width="2160" height="1350">${p.images.length > 1 ? `<button class="p-nav prev" aria-label="${t('Capture précédente', 'Previous screenshot')}"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="p-nav next" aria-label="${t('Capture suivante', 'Next screenshot')}"><svg width="20" height="20" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><span class="p-count">1 / ${p.images.length}</span>` : ''}</div>
+      <div class="p-thumbs" style="--n:${Math.max(p.images.length, 4)}">${p.images.map((src, i) => `<button class="${i ? '' : 'on'}" data-src="${src}" style="background-image:url('${src}')" aria-label="${t('Capture', 'Screenshot')} ${i + 1} ${t('sur', 'of')} ${p.images.length}"></button>`).join('')}</div></div>`
       : `<p class="p-empty">${p.body[0]}</p>`}
     ${p.note ? `<p class="p-note">${p.note}</p>` : ''}
     ${p.pending ? '' : `<div class="p-cols">
@@ -310,10 +310,23 @@ function openProject(id, x = innerWidth / 2, y = innerHeight / 2) {
       <div><h3>${t('Mon rôle', 'My role')}</h3><p>${p.role}</p>
         <h3>${t('Technologies', 'Tech stack')}</h3><div class="p-tags">${p.stack.map((s) => `<span>${s}</span>`).join('')}</div>
         <h3>${t('Ce qui le distingue', 'What sets it apart')}</h3><ul>${p.highlights.map((h) => `<li>${h}</li>`).join('')}</ul></div></div>`}`;
-  inner.querySelectorAll('.p-thumbs button').forEach((b) => b.addEventListener('click', () => {
-    inner.querySelector('.p-main img').src = b.dataset.src;
-    inner.querySelectorAll('.p-thumbs button').forEach((o) => o.classList.toggle('on', o === b));
-  }));
+  const thumbs = [...inner.querySelectorAll('.p-thumbs button')];
+  let cur = 0;
+  const show = (i) => {
+    cur = (i + thumbs.length) % thumbs.length;
+    inner.querySelector('.p-main img').src = thumbs[cur].dataset.src;
+    thumbs.forEach((o, k) => o.classList.toggle('on', k === cur));
+    const c = inner.querySelector('.p-count'); if (c) c.textContent = `${cur + 1} / ${thumbs.length}`;
+  };
+  thumbs.forEach((b, i) => b.addEventListener('click', () => show(i)));
+  inner.querySelector('.p-nav.prev')?.addEventListener('click', () => show(cur - 1));
+  inner.querySelector('.p-nav.next')?.addEventListener('click', () => show(cur + 1));
+  const pm = inner.querySelector('.p-main');
+  if (pm && thumbs.length > 1) {
+    let sx = null;
+    pm.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; }, { passive: true });
+    pm.addEventListener('touchend', (e) => { if (sx == null) return; const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 40) show(cur + (dx < 0 ? 1 : -1)); sx = null; });
+  }
   overlay.scrollTop = 0;
   overlay.setAttribute('aria-hidden', 'false');
   overlay.classList.add('open');
@@ -328,7 +341,10 @@ function closeProject() {
   lastFocus?.focus({ preventScroll: true });
 }
 overlay.querySelector('.close').addEventListener('click', closeProject);
-addEventListener('keydown', (e) => { if (e.key === 'Escape') closeProject(); });
+addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeProject();
+  if (overlay.classList.contains('open') && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) inner.querySelector(e.key === 'ArrowRight' ? '.p-nav.next' : '.p-nav.prev')?.click();
+});
 document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-project]');
   if (b) { e.preventDefault(); openProject(b.dataset.project, e.clientX, e.clientY); }
