@@ -87,7 +87,7 @@ main { position: relative; z-index: 10; }
 .later b { font-weight: 700; font-size: 20px; letter-spacing: -.02em; }
 .later p { font-size: 16px; opacity: .8; }
 
-/* L'élément interactif : priorité d'un fournisseur */
+/* L'élément interactif : niveau de risque d'un fournisseur */
 .triage { margin-top: 72px; padding: 32px; background: color-mix(in srgb, var(--z-ink) 7%, var(--z-ground)); }
 .triage h3 { font-weight: 800; font-size: 28px; line-height: 1.05; letter-spacing: -.03em; }
 .triage > p { margin-top: 8px; max-width: 44ch; }

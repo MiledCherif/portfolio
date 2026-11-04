@@ -168,7 +168,7 @@ const captions = {
 const triage = `
   <form class="triage rise" style="--delay:240ms" onsubmit="return false">
     <h3>${t('Évaluez un fournisseur', 'Assess a vendor')}</h3>
-    <p>${t('Comme dans Riskéo : trois réponses suffisent pour fixer la priorité et le niveau d’analyse.', 'Just like in Riskéo: three answers are enough to set the priority and the depth of the review.')}</p>
+    <p>${t('Comme dans Riskéo : trois réponses suffisent pour fixer le niveau de risque et l’analyse à mener.', 'Just like in Riskéo: three answers are enough to set the risk level and the review to run.')}</p>
     <fieldset><legend>${t('Données traitées', 'Data handled')}</legend><div class="seg">
       <label><input type="radio" name="data" value="0"><span>${t('Internes', 'Internal')}</span></label>
       <label><input type="radio" name="data" value="1"><span>${t('Personnelles', 'Personal')}</span></label>
@@ -220,12 +220,12 @@ const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersec
 document.querySelectorAll('.zone .column, .contact').forEach((el) => io.observe(el));
 document.querySelectorAll('.contact > *').forEach((el, i) => { el.classList.add('rise'); el.style.setProperty('--delay', `${i * 90}ms`); });
 
-/* ---------- Élément interactif : priorité Riskéo ---------- */
+/* ---------- Élément interactif : niveau de risque Riskéo ---------- */
 const form = document.querySelector('.triage');
 const verdicts = {
-  P1: ['risk', '#ff6b5f', t('Priorité P1', 'Priority P1'), t('Questionnaire complet, analyses PIA et TRA, revue immédiate par l’owner.', 'Full questionnaire, PIA and TRA assessments, immediate review by the owner.')],
-  P2: ['watch', '#f5b544', t('Priorité P2', 'Priority P2'), t('Questionnaire standard, analyses PIA et TRA.', 'Standard questionnaire, PIA and TRA assessments.')],
-  P3: ['ok', '#2ee6c5', t('Priorité P3', 'Priority P3'), t('Questionnaire court, suivi standard.', 'Short questionnaire, standard follow-up.')],
+  P1: ['risk', '#ff6b5f', t('Risque élevé', 'High risk'), t('Questionnaire complet, analyses PIA et TRA, revue immédiate par l’owner.', 'Full questionnaire, PIA and TRA assessments, immediate review by the owner.')],
+  P2: ['watch', '#f5b544', t('Risque modéré', 'Medium risk'), t('Questionnaire standard, analyses PIA et TRA.', 'Standard questionnaire, PIA and TRA assessments.')],
+  P3: ['ok', '#2ee6c5', t('Risque faible', 'Low risk'), t('Questionnaire court, suivi standard.', 'Short questionnaire, standard follow-up.')],
 };
 function triageUpdate() {
   const v = (n) => +form.querySelector(`input[name=${n}]:checked`).value;
