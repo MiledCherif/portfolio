@@ -6,8 +6,8 @@ const c = (p, f) => `${import.meta.env.BASE_URL}captures/${p}/${f}.webp`;
 export const zones = [
   {
     id: 'cyber',
-    title: 'Cybersécurité',
-    tagline: 'Analyste programmeur à l’Hôpital Montfort.',
+    title: 'Security & Risk',
+    tagline: 'Gouvernance, risque et conformité en milieu hospitalier.',
     text:
       'Je conçois les outils qui protègent les données de santé, et je travaille avec les équipes sur les analyses PIA (vie privée) et TRA (menaces et risques) des fournisseurs.',
     ground: '#062a2e', ink: '#eef7f5', accent: '#2ee6c5', onAccent: '#04201f',
@@ -15,25 +15,25 @@ export const zones = [
   },
   {
     id: 'saas',
-    title: 'Produits SaaS',
-    tagline: 'Des outils métier pensés pour les équipes.',
+    title: 'Products & Platforms',
+    tagline: 'Des plateformes métier complètes, pensées pour les équipes.',
     text: 'Tableaux de bord, pipelines commerciaux, suivi de campagnes : des applications complètes, de la base de données à l’interface.',
     ground: '#161b24', ink: '#f2efe9', accent: '#f5a524', onAccent: '#1a1206',
     projects: ['tracktarget'],
   },
   {
     id: 'web',
-    title: 'Sites web',
-    tagline: 'Des plateformes en ligne, pour de vrais clients.',
+    title: 'Web Experiences',
+    tagline: 'Des expériences en ligne soignées, pour de vrais utilisateurs.',
     text: 'Marketplaces, applications communautaires, sites vitrines : des expériences web soignées, bilingues et prêtes pour la production.',
     ground: '#e9f0fb', ink: '#0f172a', accent: '#2563eb', onAccent: '#ffffff',
     projects: ['yourmove', 'ninjawatch', 'starryone'],
   },
   {
     id: 'games',
-    title: 'Jeux',
-    tagline: 'Là où je m’amuse le plus.',
-    text: 'Un RPG en 3D dans le navigateur, un roguelite de pirates et un MOBA sur Roblox : des mondes, des règles et des histoires.',
+    title: 'Creative Lab',
+    tagline: 'Mon terrain d’expérimentation.',
+    text: 'Jeux, mondes 3D et projets créatifs : un RPG dans le navigateur, un roguelite de pirates, un MOBA sur Roblox, et tout ce que j’ai envie d’explorer.',
     ground: '#10261a', ink: '#f4efe1', accent: '#f2b950', onAccent: '#1c1405',
     projects: ['aldera', 'pavillon', 'royalog'],
   },

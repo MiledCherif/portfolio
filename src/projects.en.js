@@ -1,9 +1,9 @@
 // Version anglaise : remplace les champs textuels de projects.js.
 export const zonesEn = {
-  cyber: { title: 'Cybersecurity', tagline: 'Programmer analyst at Hôpital Montfort.', text: 'I design the tools that protect health data, and I work with the teams on vendor PIA (privacy) and TRA (threat and risk) assessments.' },
-  saas: { title: 'SaaS products', tagline: 'Business tools built for teams.', text: 'Dashboards, sales pipelines, campaign tracking: complete applications, from the database to the interface.' },
-  web: { title: 'Websites', tagline: 'Online platforms, for real clients.', text: 'Marketplaces, community apps, showcase sites: polished web experiences, bilingual and production-ready.' },
-  games: { title: 'Games', tagline: 'Where I have the most fun.', text: 'A 3D RPG in the browser, a pirate roguelite and a MOBA on Roblox: worlds, rules and stories.' },
+  cyber: { title: 'Security & Risk', tagline: 'Governance, risk and compliance in a hospital setting.', text: 'I design the tools that protect health data, and I work with the teams on vendor PIA (privacy) and TRA (threat and risk) assessments.' },
+  saas: { title: 'Products & Platforms', tagline: 'Complete business platforms, built for teams.', text: 'Dashboards, sales pipelines, campaign tracking: complete applications, from the database to the interface.' },
+  web: { title: 'Web Experiences', tagline: 'Polished online experiences, for real users.', text: 'Marketplaces, community apps, showcase sites: polished web experiences, bilingual and production-ready.' },
+  games: { title: 'Creative Lab', tagline: 'My playground for experiments.', text: 'Games, 3D worlds and creative projects: an RPG in the browser, a pirate roguelite, a MOBA on Roblox, and whatever I feel like exploring next.' },
 };
 
 export const projectsEn = {
